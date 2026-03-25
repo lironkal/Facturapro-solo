@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FacturaPro — Facturation Suisse</title>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body{background:#0b0b0c;color:white;font-family:sans-serif;margin:0}
+.center{display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column}
+input{padding:10px;margin:5px;border-radius:6px;border:none}
+button{padding:10px 20px;margin-top:10px;border:none;border-radius:6px;background:gold;cursor:pointer}
+</style>
+</head>
+
+<body>
+<div id="app"></div>
+
+<script>
+const SUPABASE_URL = "https://gvlmipsqwaiymjtzeejw.supabase.co";
+const SUPABASE_KEY = "YOUR_KEY_HERE"; // ⚠️ mets ta vraie clé
+const STRIPE_KEY = "YOUR_STRIPE_KEY";
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let state = {
+  page: "loading",
+  session: null
+};
+
+function render() {
+  const app = document.getElementById("app");
+
+  if(state.page === "loading"){
+    app.innerHTML = '<div class="center">Chargement...</div>';
+  }
+
+  if(state.page === "auth"){
+    app.innerHTML = `
+      <div class="center">
+        <h2>Connexion</h2>
+        <input id="email" placeholder="Email"/>
+        <input id="password" type="password" placeholder="Mot de passe"/>
+        <button id="login">Se connecter</button>
+      </div>
+    `;
+
+    document.getElementById("login").onclick = async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+
+      if(error){
+        alert(error.message);
+      }
+    };
+  }
+
+  if(state.page === "dashboard"){
+    app.innerHTML = `
+      <div class="center">
+        <h1>FacturaPro</h1>
+        <p>Bienvenue 🎉</p>
+        <button id="logout">Se déconnecter</button>
+      </div>
+    `;
+
+    document.getElementById("logout").onclick = () => {
+      sb.auth.signOut();
+    };
+  }
+}
+
+// INIT
+(async () => {
+  const { data:{ session } } = await sb.auth.getSession();
+
+  if(session){
+    state.session = session;
+    state.page = "dashboard";
+  } else {
+    state.page = "auth";
+  }
+
+  render();
+
+  sb.auth.onAuthStateChange((_, session) => {
+    state.session = session;
+    state.page = session ? "dashboard" : "auth";
+    render();
+  });
+})();
+</script>
+
+</body>
+</html>
