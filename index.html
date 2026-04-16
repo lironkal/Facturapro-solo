@@ -195,6 +195,8 @@ function render(){
   switch(state.page){
     case 'loading':app.innerHTML=renderLoading();break;
     case 'auth':app.innerHTML=renderAuth();break;
+    case 'forgot':app.innerHTML=renderForgot();break;
+    case 'reset':app.innerHTML=renderReset();break;
     case 'dashboard':app.innerHTML=renderDashboard();break;
     case 'editor':app.innerHTML=renderEditor();break;
     case 'pricing':app.innerHTML=renderPricing();break;
@@ -216,7 +218,34 @@ function renderAuth(){
     <input class="inp" id="email" type="email" placeholder="Email" autocomplete="email"/>
     <input class="inp" id="password" type="password" placeholder="Mot de passe"/>
     <button class="btn-gold" id="authBtn">${state.authMode==='login'?'Se connecter':'Créer mon compte'}</button>
+    ${state.authMode==='login'?'<button class="btn-ghost" id="gotoForgot" style="margin-bottom:8px">Mot de passe oublié ?</button>':''}
     <button class="btn-ghost" id="toggleAuth">${state.authMode==='login'?'Pas de compte ? Inscris-toi':'Déjà un compte ? Connecte-toi'}</button>
+  </div></div>`;
+}
+
+/* ---------- FORGOT PASSWORD PAGE ---------- */
+function renderForgot(){
+  return `<div class="auth-wrap"><div class="auth-box">
+    <span class="label-tag">Mot de passe oublié</span>
+    <h1>Réinitialiser</h1>
+    <p class="sub">Entre ton email, on t'envoie un lien pour créer un nouveau mot de passe</p>
+    ${state.msg?`<div class="msg">${esc(state.msg)}</div>`:''}
+    <input class="inp" id="forgotEmail" type="email" placeholder="Ton email" autocomplete="email"/>
+    <button class="btn-gold" id="sendResetBtn">Envoyer le lien</button>
+    <button class="btn-ghost" id="backToLogin">← Retour à la connexion</button>
+  </div></div>`;
+}
+
+/* ---------- RESET PASSWORD PAGE (after email link click) ---------- */
+function renderReset(){
+  return `<div class="auth-wrap"><div class="auth-box">
+    <span class="label-tag">Nouveau mot de passe</span>
+    <h1>Définir le mot de passe</h1>
+    <p class="sub">Choisis un nouveau mot de passe pour ton compte</p>
+    ${state.msg?`<div class="msg">${esc(state.msg)}</div>`:''}
+    <input class="inp" id="newPassword" type="password" placeholder="Nouveau mot de passe (min. 6 caractères)"/>
+    <input class="inp" id="newPasswordConfirm" type="password" placeholder="Confirme le mot de passe"/>
+    <button class="btn-gold" id="updatePasswordBtn">Enregistrer</button>
   </div></div>`;
 }
 
@@ -504,6 +533,53 @@ function bindEvents(){
   const toggleAuth=document.getElementById('toggleAuth');
   if(toggleAuth) toggleAuth.onclick=()=>{state.authMode=state.authMode==='login'?'signup':'login';state.msg='';render();};
 
+  // ---- FORGOT PASSWORD ----
+  const gotoForgot=document.getElementById('gotoForgot');
+  if(gotoForgot) gotoForgot.onclick=()=>{state.page='forgot';state.msg='';render();};
+
+  const backToLogin=document.getElementById('backToLogin');
+  if(backToLogin) backToLogin.onclick=()=>{state.page='auth';state.authMode='login';state.msg='';render();};
+
+  const sendResetBtn=document.getElementById('sendResetBtn');
+  if(sendResetBtn){
+    sendResetBtn.onclick=async()=>{
+      const email=document.getElementById('forgotEmail').value.trim();
+      if(!email){state.msg='Email requis';render();return;}
+      state.msg='Envoi en cours...';render();
+      try{
+        const{error}=await sb.auth.resetPasswordForEmail(email,{
+          redirectTo:window.location.origin+window.location.pathname
+        });
+        if(error)throw error;
+        state.msg='✓ Email envoyé ! Vérifie ta boîte de réception.';render();
+      }catch(e){
+        state.msg=e.message||'Erreur lors de l\'envoi';render();
+      }
+    };
+  }
+
+  // ---- RESET PASSWORD ----
+  const updatePasswordBtn=document.getElementById('updatePasswordBtn');
+  if(updatePasswordBtn){
+    updatePasswordBtn.onclick=async()=>{
+      const p1=document.getElementById('newPassword').value;
+      const p2=document.getElementById('newPasswordConfirm').value;
+      if(!p1||p1.length<6){state.msg='Mot de passe min. 6 caractères';render();return;}
+      if(p1!==p2){state.msg='Les mots de passe ne correspondent pas';render();return;}
+      state.msg='Mise à jour...';render();
+      try{
+        const{error}=await sb.auth.updateUser({password:p1});
+        if(error)throw error;
+        state.msg='✓ Mot de passe mis à jour !';
+        await loadInvoices();
+        setTimeout(()=>{state.page='dashboard';state.msg='';render();},1200);
+        render();
+      }catch(e){
+        state.msg=e.message||'Erreur';render();
+      }
+    };
+  }
+
   // ---- DASHBOARD ----
   const logout=document.getElementById('logout');
   if(logout) logout.onclick=async()=>{await sb.auth.signOut();state.session=null;state.invoices=[];state.page='auth';render();};
@@ -688,8 +764,15 @@ async function saveInvoice(){
 (async function init(){
   render();
   try{
+    // Detect password reset link (Supabase adds #type=recovery)
+    const hash=window.location.hash||'';
+    const isRecovery=hash.includes('type=recovery');
+
     const{data}=await sb.auth.getSession();
-    if(data&&data.session){
+    if(isRecovery){
+      state.session=data&&data.session?data.session:null;
+      state.page='reset';
+    }else if(data&&data.session){
       state.session=data.session;
       await loadInvoices();
       state.page='dashboard';
@@ -701,8 +784,11 @@ async function saveInvoice(){
   }
   render();
 
-  sb.auth.onAuthStateChange((_event,session)=>{
+  sb.auth.onAuthStateChange((event,session)=>{
     state.session=session;
+    if(event==='PASSWORD_RECOVERY'){
+      state.page='reset';render();return;
+    }
     if(!session){state.page='auth';state.invoices=[];render();}
   });
 })();
