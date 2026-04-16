@@ -690,17 +690,46 @@ function bindEvents(){
     };
   });
 
-  // Live recalc on item change
+  // Live recalc on item change — update totals in-place WITHOUT re-rendering
+  // (prevents focus loss while typing in the description / qty / price fields)
+  function updateTotalsInPlace(){
+    const f=state.form;
+    // Update each item's line total
+    const rows=document.querySelectorAll('.item-row');
+    rows.forEach((row,i)=>{
+      if(!f.items[i])return;
+      const totalEl=row.querySelector('.item-total');
+      if(totalEl){
+        const q=Number(f.items[i].qty||0);
+        const p=Number(f.items[i].price||0);
+        totalEl.textContent=(q*p).toFixed(2);
+      }
+    });
+    // Recompute totals
+    const{sub,vt,tot}=calcTotals(f);
+    const totalRows=document.querySelectorAll('.totals .total-row');
+    if(totalRows[0]){
+      const subEl=totalRows[0].querySelector('span:last-child');
+      if(subEl)subEl.textContent=sub.toFixed(2)+' CHF';
+    }
+    if(totalRows[1]){
+      const vatEl=totalRows[1].querySelector('span:last-child');
+      if(vatEl)vatEl.textContent=vt.toFixed(2)+' CHF';
+    }
+    const grandEl=document.querySelector('.grand-amount');
+    if(grandEl)grandEl.textContent=tot.toFixed(2)+' CHF';
+  }
+
   document.querySelectorAll('[data-item]').forEach(inp=>{
-    inp.oninput=()=>{syncFormFromDOM();
-      // re-render only the totals without full rerender to keep focus? simpler: full render
-      // focus loss is acceptable for our scope
-      render();
+    inp.oninput=()=>{
+      // Only sync data + update totals visually — do NOT re-render the whole page
+      syncFormFromDOM();
+      updateTotalsInPlace();
     };
   });
 
   const vatSel=document.getElementById('f_vat_rate');
-  if(vatSel) vatSel.onchange=()=>{syncFormFromDOM();render();};
+  if(vatSel) vatSel.onchange=()=>{syncFormFromDOM();updateTotalsInPlace();};
 
   const cancelEdit=document.getElementById('cancelEdit');
   if(cancelEdit) cancelEdit.onclick=()=>{state.page='dashboard';render();};
