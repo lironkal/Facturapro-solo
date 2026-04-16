@@ -162,8 +162,12 @@ let state={
   authMode:'login',
   msg:'',
   saving:false,
-  editorTab:'edit'
+  editorTab:'edit',
+  plan:'free',
+  showLimitModal:false
 };
+
+const FREE_MONTHLY_LIMIT=3;
 
 /* ---------- UTILS ---------- */
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
@@ -277,6 +281,21 @@ function renderDashboard(){
       </div>
     </div>`).join('');
 
+  const monthCount=countInvoicesThisMonth();
+  const isFree=state.plan!=='solo';
+  const atLimit=isFree&&monthCount>=FREE_MONTHLY_LIMIT;
+  const quotaBanner=isFree?`
+    <div style="background:var(--s1);border:1px solid ${atLimit?'rgba(255,100,100,.3)':'var(--bd)'};border-radius:11px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:11px;letter-spacing:2px;color:${atLimit?'#ff8080':'var(--g)'};text-transform:uppercase;font-weight:600;margin-bottom:4px">Plan gratuit</div>
+        <div style="font-size:14px;color:var(--tx)">${monthCount} / ${FREE_MONTHLY_LIMIT} factures ce mois-ci</div>
+      </div>
+      <button class="btn-gold-sm" id="upgradeFromDash">Passer Solo (9 CHF/mois)</button>
+    </div>`:`
+    <div style="background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(201,168,76,.03));border:1px solid rgba(201,168,76,.3);border-radius:11px;padding:12px 18px;margin-bottom:20px">
+      <div style="font-size:11px;letter-spacing:2px;color:var(--g);text-transform:uppercase;font-weight:600">✨ Plan Solo — Factures illimitées</div>
+    </div>`;
+
   return `<nav class="nav">
     <div class="nav-logo" id="goHome">Factura<span>Pro</span></div>
     <div class="nav-actions">
@@ -290,6 +309,7 @@ function renderDashboard(){
       <div class="eyebrow">Tableau de bord</div>
       <h1>Mes factures</h1>
     </div>
+    ${quotaBanner}
     ${state.invoices.length===0
       ? `<div class="empty">
           <div class="icon">—</div>
@@ -297,6 +317,21 @@ function renderDashboard(){
           <button class="btn-gold" style="width:auto;padding:12px 28px" id="newInv2">Créer ma première facture</button>
         </div>`
       : `<div class="inv-list">${invCards}</div>`}
+  </div>
+  ${state.showLimitModal?renderLimitModal():''}`;
+}
+
+/* ---------- LIMIT MODAL ---------- */
+function renderLimitModal(){
+  return `<div id="limitModalBg" style="position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px">
+    <div style="background:var(--s1);border:1px solid rgba(201,168,76,.3);border-radius:16px;padding:36px 32px;max-width:420px;width:100%;text-align:center;box-shadow:0 20px 80px rgba(0,0,0,.5)">
+      <div style="font-family:'Playfair Display',serif;font-size:42px;color:var(--g);margin-bottom:12px">—</div>
+      <div style="font-size:9px;letter-spacing:4px;color:var(--g);text-transform:uppercase;margin-bottom:10px">Limite atteinte</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:22px;color:var(--tx);margin-bottom:12px">Tu as utilisé tes 3 factures gratuites ce mois-ci</h2>
+      <p style="font-size:14px;color:var(--m2);line-height:1.6;margin-bottom:24px">Passe au plan <strong style="color:var(--g)">Solo</strong> pour créer des factures illimitées, seulement <strong style="color:var(--gl)">9 CHF/mois</strong>.</p>
+      <button class="btn-gold" id="upgradeFromModal" style="margin-bottom:8px">Passer au plan Solo</button>
+      <button class="btn-ghost" id="closeLimitModal">Plus tard</button>
+    </div>
   </div>`;
 }
 
@@ -522,14 +557,14 @@ function bindEvents(){
           const{data,error}=await sb.auth.signInWithPassword({email,password});
           if(error)throw error;
           state.session=data.session;state.msg='';
-          await loadInvoices();
+          await Promise.all([loadInvoices(),loadPlan()]);
           state.page='dashboard';render();
         }else{
           const{data,error}=await sb.auth.signUp({email,password});
           if(error)throw error;
           if(data.session){
             state.session=data.session;state.msg='';
-            await loadInvoices();
+            await Promise.all([loadInvoices(),loadPlan()]);
             state.page='dashboard';render();
           }else{
             state.msg='Compte créé ! Vérifie ton email pour confirmer.';
@@ -616,13 +651,39 @@ function bindEvents(){
   if(logout) logout.onclick=async()=>{await sb.auth.signOut();state.session=null;state.invoices=[];state.page='auth';render();};
 
   const newInv=document.getElementById('newInv');
-  if(newInv) newInv.onclick=()=>{state.form=newInvoice();state.currentInvoice=null;state.editorTab='edit';state.page='editor';render();};
+  if(newInv) newInv.onclick=()=>{
+    if(!canCreateInvoice()){state.showLimitModal=true;render();return;}
+    state.form=newInvoice();state.currentInvoice=null;state.editorTab='edit';state.page='editor';render();
+  };
 
   const newInv2=document.getElementById('newInv2');
-  if(newInv2) newInv2.onclick=()=>{state.form=newInvoice();state.currentInvoice=null;state.editorTab='edit';state.page='editor';render();};
+  if(newInv2) newInv2.onclick=()=>{
+    if(!canCreateInvoice()){state.showLimitModal=true;render();return;}
+    state.form=newInvoice();state.currentInvoice=null;state.editorTab='edit';state.page='editor';render();
+  };
 
   const gopricing=document.getElementById('gopricing');
   if(gopricing) gopricing.onclick=()=>{state.page='pricing';render();};
+
+  // ---- LIMIT MODAL & QUOTA BANNER ----
+  const closeLimitModal=document.getElementById('closeLimitModal');
+  if(closeLimitModal) closeLimitModal.onclick=()=>{state.showLimitModal=false;render();};
+
+  const limitModalBg=document.getElementById('limitModalBg');
+  if(limitModalBg) limitModalBg.onclick=(e)=>{
+    if(e.target&&e.target.id==='limitModalBg'){state.showLimitModal=false;render();}
+  };
+
+  const upgradeFromModal=document.getElementById('upgradeFromModal');
+  if(upgradeFromModal) upgradeFromModal.onclick=()=>{
+    window.open(STRIPE_LINK,'_blank','noopener,noreferrer');
+    state.showLimitModal=false;render();
+  };
+
+  const upgradeFromDash=document.getElementById('upgradeFromDash');
+  if(upgradeFromDash) upgradeFromDash.onclick=()=>{
+    window.open(STRIPE_LINK,'_blank','noopener,noreferrer');
+  };
 
   document.querySelectorAll('[data-edit]').forEach(btn=>{
     btn.onclick=()=>{
@@ -775,11 +836,39 @@ async function loadInvoices(){
   state.invoices=data||[];
 }
 
+async function loadPlan(){
+  if(!state.session){state.plan='free';return;}
+  const{data,error}=await sb.from('user_plans').select('plan').eq('user_id',state.session.user.id).maybeSingle();
+  if(error){console.error('loadPlan error',error);state.plan='free';return;}
+  state.plan=(data&&data.plan)||'free';
+}
+
+function countInvoicesThisMonth(){
+  const now=new Date();
+  const y=now.getFullYear();
+  const m=now.getMonth();
+  return state.invoices.filter(inv=>{
+    const d=inv.created_at?new Date(inv.created_at):(inv.date?new Date(inv.date+'T12:00:00'):null);
+    if(!d)return false;
+    return d.getFullYear()===y&&d.getMonth()===m;
+  }).length;
+}
+
+function canCreateInvoice(){
+  if(state.plan==='solo')return true;
+  return countInvoicesThisMonth()<FREE_MONTHLY_LIMIT;
+}
+
 async function saveInvoice(){
   if(state.saving)return;
   syncFormFromDOM();
   const f=state.form;
   if(!f.client_name||!f.client_name.trim()){alert('Le nom du client est requis');return;}
+  // Re-check limit at save time (security) — only for NEW invoices, not for edits
+  const isNew=!state.currentInvoice||!state.currentInvoice.id;
+  if(isNew&&!canCreateInvoice()){
+    state.showLimitModal=true;state.page='dashboard';render();return;
+  }
   const{sub,vt,tot}=calcTotals(f);
   state.saving=true;render();
 
@@ -834,7 +923,7 @@ async function saveInvoice(){
       state.page='reset';
     }else if(data&&data.session){
       state.session=data.session;
-      await loadInvoices();
+      await Promise.all([loadInvoices(),loadPlan()]);
       state.page='dashboard';
     }else{
       state.page='auth';
@@ -851,7 +940,7 @@ async function saveInvoice(){
     }
     if(event==='SIGNED_IN'&&session){
       // Covers Google OAuth redirect and email login
-      await loadInvoices();
+      await Promise.all([loadInvoices(),loadPlan()]);
       if(state.page==='auth'||state.page==='loading'||state.page==='forgot'){
         state.page='dashboard';state.msg='';
       }
