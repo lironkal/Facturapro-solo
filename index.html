@@ -142,6 +142,59 @@ html,body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;
   .inv-footer{padding:12px 24px}
   .grand{width:100%}
 }
+/* ---------- LANDING PAGE ---------- */
+.lp-nav{background:rgba(11,11,12,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);height:64px;padding:0 32px;display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:99}
+.lp-hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:120px 20px 80px;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(201,168,76,.08),transparent)}
+.lp-hero-tag{font-size:9px;letter-spacing:5px;color:var(--g);text-transform:uppercase;margin-bottom:20px;display:block}
+.lp-hero h1{font-family:'Playfair Display',serif;font-size:clamp(32px,5vw,58px);font-weight:700;color:var(--tx);line-height:1.15;max-width:800px;margin:0 auto 20px}
+.lp-hero h1 span{color:var(--g)}
+.lp-hero-sub{font-size:17px;color:var(--m2);margin-bottom:36px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.6}
+.lp-hero-badges{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:36px}
+.lp-badge{font-size:12px;padding:6px 14px;border-radius:20px;background:var(--s1);border:1px solid var(--bd);color:var(--m2)}
+.lp-btn-primary{display:inline-block;padding:16px 36px;background:linear-gradient(135deg,#d4a94e,#9a6e18);color:#0b0b0c;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:.3s;letter-spacing:.5px}
+.lp-btn-primary:hover{box-shadow:0 8px 32px rgba(201,168,76,.45);transform:translateY(-2px)}
+.lp-hero-note{font-size:12px;color:var(--m1);margin-top:14px}
+.lp-strip{background:var(--s1);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);padding:28px 32px;display:flex;justify-content:center;gap:48px;flex-wrap:wrap}
+.lp-strip-item{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--m2)}
+.lp-strip-item span:first-child{font-size:22px}
+.lp-section{padding:80px 20px;max-width:900px;margin:0 auto}
+.lp-section-tag{font-size:9px;letter-spacing:4px;color:var(--g);text-transform:uppercase;margin-bottom:12px;display:block;text-align:center}
+.lp-section h2{font-family:'Playfair Display',serif;font-size:clamp(24px,3.5vw,38px);color:var(--tx);text-align:center;margin-bottom:16px}
+.lp-section .lp-sub{font-size:15px;color:var(--m2);text-align:center;max-width:540px;margin:0 auto 48px;line-height:1.6}
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.step-card{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:28px 24px;text-align:center;position:relative}
+.step-num{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#d4a94e,#9a6e18);color:#0b0b0c;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.step-card h3{font-family:'Playfair Display',serif;font-size:18px;color:var(--tx);margin-bottom:8px}
+.step-card p{font-size:13px;color:var(--m2);line-height:1.6}
+.benefits-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.benefit-card{background:var(--s1);border:1px solid var(--bd);border-radius:13px;padding:24px;display:flex;gap:16px;align-items:flex-start}
+.benefit-icon{font-size:28px;line-height:1;flex-shrink:0}
+.benefit-card h3{font-size:15px;font-weight:700;color:var(--tx);margin-bottom:6px}
+.benefit-card p{font-size:13px;color:var(--m2);line-height:1.6}
+.testimonials-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.testi-card{background:var(--s1);border:1px solid var(--bd);border-radius:13px;padding:24px}
+.testi-stars{color:var(--g);font-size:14px;margin-bottom:12px;letter-spacing:2px}
+.testi-text{font-size:14px;color:var(--tx);line-height:1.7;margin-bottom:16px;font-style:italic}
+.testi-author{font-size:12px;color:var(--m2)}
+.testi-author strong{color:var(--g);display:block;font-style:normal}
+.faq-list{display:flex;flex-direction:column;gap:12px;max-width:680px;margin:0 auto}
+.faq-item{background:var(--s1);border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+.faq-q{padding:18px 20px;font-size:14px;font-weight:600;color:var(--tx);cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}
+.faq-q:hover{color:var(--g)}
+.faq-q::after{content:'＋';color:var(--g);font-size:18px;line-height:1;flex-shrink:0}
+.faq-item.open .faq-q::after{content:'－'}
+.faq-a{padding:0 20px;max-height:0;overflow:hidden;font-size:14px;color:var(--m2);line-height:1.7;transition:max-height .3s ease,padding .3s ease}
+.faq-item.open .faq-a{max-height:200px;padding:0 20px 18px}
+.lp-cta-banner{background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(201,168,76,.03));border:1px solid rgba(201,168,76,.2);border-radius:20px;padding:60px 40px;text-align:center;margin:0 20px 80px;max-width:860px;margin-left:auto;margin-right:auto}
+.lp-cta-banner h2{font-family:'Playfair Display',serif;font-size:clamp(22px,3vw,36px);color:var(--tx);margin-bottom:12px}
+.lp-cta-banner p{font-size:15px;color:var(--m2);margin-bottom:28px}
+.lp-footer{border-top:1px solid var(--bd);padding:24px 32px;text-align:center;font-size:12px;color:var(--m1);letter-spacing:1px}
+@media(max-width:640px){
+  .steps-grid,.benefits-grid,.testimonials-grid{grid-template-columns:1fr}
+  .lp-strip{gap:20px}
+  .lp-nav{padding:0 16px}
+  .lp-cta-banner{padding:40px 24px}
+}
 </style>
 </head>
 <body>
@@ -198,6 +251,7 @@ function render(){
   const app=document.getElementById('app');
   switch(state.page){
     case 'loading':app.innerHTML=renderLoading();break;
+    case 'landing':app.innerHTML=renderLanding();break;
     case 'auth':app.innerHTML=renderAuth();break;
     case 'forgot':app.innerHTML=renderForgot();break;
     case 'reset':app.innerHTML=renderReset();break;
@@ -210,6 +264,196 @@ function render(){
 
 function renderLoading(){
   return '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center"><div style="font-family:\'Playfair Display\',serif;font-size:20px;color:var(--g)">FacturaPro...</div></div>';
+}
+
+/* ---------- LANDING PAGE ---------- */
+function renderLanding(){
+  return `
+  <nav class="lp-nav">
+    <div class="nav-logo" id="lpLogo">Factura<span style="color:var(--g)">Pro</span></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-sm btn-outline" id="lpLogin">Se connecter</button>
+      <button class="btn-gold-sm" id="lpSignup">Commencer gratuitement</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="lp-hero">
+    <div>
+      <span class="lp-hero-tag">Facturation Suisse Simplifiée</span>
+      <h1>Crée et envoie tes factures<br>suisses en <span>30 secondes</span></h1>
+      <p class="lp-hero-sub">QR facture conforme Swiss QR Bill. Envoi email direct. TVA suisse intégrée.</p>
+      <div class="lp-hero-badges">
+        <span class="lp-badge">✓ Sans carte bancaire</span>
+        <span class="lp-badge">✓ 3 factures gratuites</span>
+        <span class="lp-badge">✓ Annulable à tout moment</span>
+      </div>
+      <button class="lp-btn-primary" id="lpHeroCta">Commencer gratuitement →</button>
+      <p class="lp-hero-note">3 factures gratuites pour tester · Sans engagement</p>
+    </div>
+  </section>
+
+  <!-- STRIP -->
+  <div class="lp-strip">
+    <div class="lp-strip-item"><span>⚡</span><span>Facture en 30 sec</span></div>
+    <div class="lp-strip-item"><span>📱</span><span>QR facture suisse auto</span></div>
+    <div class="lp-strip-item"><span>📧</span><span>Envoi email direct</span></div>
+    <div class="lp-strip-item"><span>🔒</span><span>Données sécurisées CH</span></div>
+  </div>
+
+  <!-- COMMENT CA MARCHE -->
+  <div style="background:var(--bg)">
+  <div class="lp-section">
+    <span class="lp-section-tag">Simple comme bonjour</span>
+    <h2>Comment ça marche ?</h2>
+    <p class="lp-sub">Pas de formation, pas de manuel. Tu factures en 3 étapes.</p>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h3>Crée ton compte</h3>
+        <p>Gratuit, sans carte bancaire. Prêt en 30 secondes.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h3>Remplis ta facture</h3>
+        <p>Nom du client, prestations, TVA suisse calculée automatiquement.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h3>Envoie ou imprime</h3>
+        <p>PDF ou email directement depuis FacturaPro. QR facture incluse.</p>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- BENEFITS -->
+  <div style="background:var(--s1);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)">
+  <div class="lp-section">
+    <span class="lp-section-tag">Pourquoi FacturaPro</span>
+    <h2>Arrête de perdre du temps<br>avec tes factures</h2>
+    <p class="lp-sub">Conçu pour les indépendants suisses qui veulent facturer vite et être payés plus vite.</p>
+    <div class="benefits-grid">
+      <div class="benefit-card">
+        <span class="benefit-icon">💥</span>
+        <div>
+          <h3>Fini Excel</h3>
+          <p>Fini les tableaux, les formules cassées, les mises en page qui bougent à chaque impression.</p>
+        </div>
+      </div>
+      <div class="benefit-card">
+        <span class="benefit-icon">🏦</span>
+        <div>
+          <h3>QR facture suisse incluse</h3>
+          <p>Conforme aux normes Swiss QR Bill, générée automatiquement sur chaque facture.</p>
+        </div>
+      </div>
+      <div class="benefit-card">
+        <span class="benefit-icon">📨</span>
+        <div>
+          <h3>Envoi email intégré</h3>
+          <p>Envoie ta facture directement depuis FacturaPro. Zéro copier-coller, zéro galère.</p>
+        </div>
+      </div>
+      <div class="benefit-card">
+        <span class="benefit-icon">🧮</span>
+        <div>
+          <h3>TVA suisse automatique</h3>
+          <p>8.1%, 3.8%, 2.6% — tu choisis le taux, FacturaPro calcule tout en temps réel.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- TESTIMONIALS -->
+  <div style="background:var(--bg)">
+  <div class="lp-section">
+    <span class="lp-section-tag">Ils facturent mieux</span>
+    <h2>Ce que disent nos utilisateurs</h2>
+    <p class="lp-sub" style="margin-bottom:36px">Des indépendants suisses qui ont repris le contrôle de leur facturation.</p>
+    <div class="testimonials-grid">
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"En tant qu'indépendant, je perdais 2h par semaine sur mes factures. Maintenant c'est 5 minutes."</p>
+        <div class="testi-author"><strong>Marc T.</strong>Consultant IT · Lausanne</div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"La QR facture est incluse automatiquement. Mes clients paient beaucoup plus vite depuis que je l'utilise."</p>
+        <div class="testi-author"><strong>Sophie R.</strong>Graphiste · Genève</div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"9 CHF par mois c'est rien comparé au temps que je gagne. J'aurais dû passer à FacturaPro bien plus tôt."</p>
+        <div class="testi-author"><strong>Luca M.</strong>Artisan · Zurich</div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- PRICING -->
+  <div style="background:var(--s1);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)">
+  <div class="lp-section">
+    <span class="lp-section-tag">Tarification</span>
+    <h2>Simple et transparent</h2>
+    <p class="lp-sub">Commence gratuitement. Passe Solo quand tu es prêt. Moins cher qu'une heure de comptable.</p>
+    <div class="pricing-grid" style="max-width:620px;margin:0 auto">
+      <div class="plan-card plan-free">
+        <div class="plan-name">Gratuit</div>
+        <div><span class="plan-price">0</span><span class="plan-period">CHF / mois</span></div>
+        <ul class="plan-features">
+          <li>3 factures par mois</li>
+          <li>Export PDF</li>
+          <li>TVA suisse intégrée</li>
+          <li>Stockage sécurisé</li>
+        </ul>
+        <button class="btn-gold" id="lpFreeStart" style="margin-bottom:0">Commencer gratuitement</button>
+      </div>
+      <div class="plan-card plan-solo">
+        <div class="plan-name">Solo ✨</div>
+        <div><span class="plan-price">9</span><span class="plan-period">CHF / mois</span></div>
+        <ul class="plan-features">
+          <li>Factures illimitées</li>
+          <li>Export PDF premium</li>
+          <li>TVA suisse intégrée</li>
+          <li>Support prioritaire</li>
+          <li>QR-facture Suisse (bientôt)</li>
+        </ul>
+        <button class="btn-gold" id="lpSoloStart" style="margin-bottom:0">Commencer gratuitement</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- FAQ -->
+  <div style="background:var(--bg)">
+  <div class="lp-section">
+    <span class="lp-section-tag">Questions fréquentes</span>
+    <h2>Tout ce que tu veux savoir</h2>
+    <p class="lp-sub" style="margin-bottom:36px"></p>
+    <div class="faq-list">
+      <div class="faq-item"><div class="faq-q">Est-ce vraiment gratuit ?</div><div class="faq-a">Oui, 3 factures par mois sans carte bancaire, sans engagement. Aucune surprise.</div></div>
+      <div class="faq-item"><div class="faq-q">Puis-je annuler à tout moment ?</div><div class="faq-a">Oui. Le plan Solo est sans engagement. Tu annules en un clic, quand tu veux.</div></div>
+      <div class="faq-item"><div class="faq-q">La QR facture est-elle conforme ?</div><div class="faq-a">Oui, elle respecte la norme Swiss QR Bill officielle, acceptée par toutes les banques suisses.</div></div>
+      <div class="faq-item"><div class="faq-q">Mes données sont-elles sécurisées ?</div><div class="faq-a">Oui. Serveurs hébergés en Europe, chiffrement SSL, accès protégé par authentification.</div></div>
+      <div class="faq-item"><div class="faq-q">Comment passer au plan Solo ?</div><div class="faq-a">Un clic depuis ton tableau de bord. Le paiement est sécurisé via Stripe.</div></div>
+    </div>
+  </div>
+  </div>
+
+  <!-- CTA BANNER -->
+  <div class="lp-cta-banner">
+    <h2>Prêt à facturer en 30 secondes ?</h2>
+    <p>Rejoins les indépendants suisses qui ont arrêté de perdre du temps avec leurs factures.</p>
+    <button class="lp-btn-primary" id="lpBottomCta">Créer mon compte gratuit →</button>
+    <p style="font-size:12px;color:var(--m1);margin-top:14px">Sans carte bancaire · 3 factures gratuites · Annulable à tout moment</p>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="lp-footer">
+    FacturaPro © 2026 &nbsp;·&nbsp; Facturation Suisse &nbsp;·&nbsp; contact@facturapro.ch
+  </footer>`;
 }
 
 /* ---------- AUTH PAGE ---------- */
@@ -236,6 +480,7 @@ function renderAuth(){
     <button class="btn-gold" id="authBtn">${state.authMode==='login'?'Se connecter':'Créer mon compte'}</button>
     ${state.authMode==='login'?'<button class="btn-ghost" id="gotoForgot" style="margin-bottom:8px">Mot de passe oublié ?</button>':''}
     <button class="btn-ghost" id="toggleAuth">${state.authMode==='login'?'Pas de compte ? Inscris-toi':'Déjà un compte ? Connecte-toi'}</button>
+    <button class="btn-ghost" id="backToLanding" style="color:var(--m1);font-size:12px;margin-top:4px">← Retour à l'accueil</button>
   </div></div>`;
 }
 
@@ -540,6 +785,30 @@ function renderPricing(){
 
 /* ---------- EVENT BINDING ---------- */
 function bindEvents(){
+  // ---- LANDING PAGE ----
+  const lpLogo=document.getElementById('lpLogo');
+  if(lpLogo) lpLogo.onclick=()=>{state.page='landing';render();};
+  const lpLogin=document.getElementById('lpLogin');
+  if(lpLogin) lpLogin.onclick=()=>{state.authMode='login';state.msg='';state.page='auth';render();};
+  const lpSignupBtn=document.getElementById('lpSignup');
+  if(lpSignupBtn) lpSignupBtn.onclick=()=>{state.authMode='signup';state.msg='';state.page='auth';render();};
+  const lpHeroCta=document.getElementById('lpHeroCta');
+  if(lpHeroCta) lpHeroCta.onclick=()=>{state.authMode='signup';state.msg='';state.page='auth';render();};
+  const lpFreeStart=document.getElementById('lpFreeStart');
+  if(lpFreeStart) lpFreeStart.onclick=()=>{state.authMode='signup';state.msg='';state.page='auth';render();};
+  const lpSoloStart=document.getElementById('lpSoloStart');
+  if(lpSoloStart) lpSoloStart.onclick=()=>{state.authMode='signup';state.msg='';state.page='auth';render();};
+  const lpBottomCta=document.getElementById('lpBottomCta');
+  if(lpBottomCta) lpBottomCta.onclick=()=>{state.authMode='signup';state.msg='';state.page='auth';render();};
+  // FAQ accordion
+  document.querySelectorAll('.faq-item').forEach(item=>{
+    const q=item.querySelector('.faq-q');
+    if(q) q.onclick=()=>{item.classList.toggle('open');};
+  });
+  // Back to landing from auth
+  const backToLanding=document.getElementById('backToLanding');
+  if(backToLanding) backToLanding.onclick=()=>{state.page='landing';render();};
+
   // Logo -> dashboard
   const logo=document.getElementById('goHome');
   if(logo) logo.onclick=()=>{state.page='dashboard';render();};
@@ -653,13 +922,13 @@ function bindEvents(){
   const newInv=document.getElementById('newInv');
   if(newInv) newInv.onclick=()=>{
     if(!canCreateInvoice()){state.showLimitModal=true;render();return;}
-    state.form=newInvoice();state.currentInvoice=null;state.editorTab='edit';state.page='editor';render();
+    state.form=newInvoice();state.currentInvoice=null;state.editorTab='edit';state.saving=false;state.page='editor';render();
   };
 
   const newInv2=document.getElementById('newInv2');
   if(newInv2) newInv2.onclick=()=>{
     if(!canCreateInvoice()){state.showLimitModal=true;render();return;}
-    state.form=newInvoice();state.currentInvoice=null;state.editorTab='edit';state.page='editor';render();
+    state.form=newInvoice();state.currentInvoice=null;state.editorTab='edit';state.saving=false;state.page='editor';render();
   };
 
   const gopricing=document.getElementById('gopricing');
@@ -727,9 +996,9 @@ function bindEvents(){
 
   // ---- EDITOR ----
   const backDash=document.getElementById('backDash');
-  if(backDash) backDash.onclick=()=>{state.page='dashboard';render();};
+  if(backDash) backDash.onclick=()=>{state.saving=false;state.page='dashboard';render();};
   const backDash2=document.getElementById('backDash2');
-  if(backDash2) backDash2.onclick=()=>{state.page='dashboard';render();};
+  if(backDash2) backDash2.onclick=()=>{state.saving=false;state.page='dashboard';render()};
 
   const tabEdit=document.getElementById('tabEdit');
   if(tabEdit) tabEdit.onclick=()=>{state.editorTab='edit';render();};
@@ -788,7 +1057,7 @@ function bindEvents(){
   if(vatSel) vatSel.onchange=()=>{syncFormFromDOM();updateTotalsInPlace();};
 
   const cancelEdit=document.getElementById('cancelEdit');
-  if(cancelEdit) cancelEdit.onclick=()=>{state.page='dashboard';render();};
+  if(cancelEdit) cancelEdit.onclick=()=>{state.saving=false;state.page='dashboard';render()};
 
   const saveInv=document.getElementById('saveInv');
   if(saveInv) saveInv.onclick=saveInvoice;
@@ -919,10 +1188,10 @@ async function saveInvoice(){
       await Promise.all([loadInvoices(),loadPlan()]);
       state.page='dashboard';
     }else{
-      state.page='auth';
+      state.page='landing';
     }
   }catch(e){
-    state.page='auth';
+    state.page='landing';
   }
   render();
 
@@ -933,7 +1202,7 @@ async function saveInvoice(){
     }
     if(event==='SIGNED_IN'&&session){
       await Promise.all([loadInvoices(),loadPlan()]);
-      if(state.page==='auth'||state.page==='loading'||state.page==='forgot'){
+      if(state.page==='auth'||state.page==='loading'||state.page==='forgot'||state.page==='landing'){
         state.page='dashboard';state.msg='';
       }
       render();return;
