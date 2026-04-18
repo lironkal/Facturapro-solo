@@ -200,11 +200,61 @@ html,body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;
 .legal-box h3{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--g);font-weight:600;margin:24px 0 8px}
 .legal-box h3:first-child{margin-top:0}
 .legal-box p{font-size:14px;color:var(--m2);line-height:1.7;margin-bottom:4px}
-@media(max-width:640px){
-  .steps-grid,.benefits-grid,.testimonials-grid{grid-template-columns:1fr}
-  .lp-strip{gap:20px}
-  .lp-nav{padding:0 16px}
-  .lp-cta-banner{padding:40px 24px}
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+  /* NAV */
+  .lp-nav{padding:0 16px;height:56px}
+  .nav{padding:0 14px;height:54px}
+  .nav-actions{gap:6px}
+  .btn-sm{font-size:11px;padding:6px 12px}
+  /* HERO */
+  .lp-hero{padding:90px 16px 60px;min-height:auto}
+  .lp-hero h1{font-size:clamp(26px,7vw,42px)}
+  .lp-hero-sub{font-size:15px}
+  /* STRIP */
+  .lp-strip{gap:20px;padding:22px 16px;justify-content:flex-start}
+  .lp-strip-item{font-size:13px}
+  /* SECTION */
+  .lp-section{padding:56px 16px}
+  /* STEPS / BENEFITS / TESTI / PRICING */
+  .steps-grid{grid-template-columns:1fr}
+  .benefits-grid{grid-template-columns:1fr}
+  .testimonials-grid{grid-template-columns:1fr}
+  .pricing-grid{grid-template-columns:1fr}
+  /* BEFORE/AFTER */
+  .before-after-grid{flex-direction:column!important}
+  /* CTA BANNER */
+  .lp-cta-banner{padding:40px 20px;margin:0 12px 60px}
+  .lp-cta-banner h2{font-size:22px}
+  /* FOOTER */
+  .lp-footer{padding:20px 16px}
+  /* EDITOR */
+  .g3{grid-template-columns:1fr!important}
+  .g2{grid-template-columns:1fr!important}
+  .editor{padding:16px 12px}
+  .card{padding:16px}
+  .grand{width:100%}
+  .actions{flex-direction:column}
+  .btn-cancel{text-align:center}
+  /* DASHBOARD */
+  .dash{padding:28px 14px}
+  .inv-card{padding:14px 16px}
+  /* PRICING PAGE */
+  .pricing-inner{padding:0 16px}
+  /* LEGAL MODAL */
+  .legal-box{padding:24px 16px}
+}
+@media(max-width:480px){
+  /* INVOICE ITEMS — stack on tiny screens */
+  .items-header{display:none}
+  .item-row{grid-template-columns:1fr 60px 90px 30px;font-size:13px}
+  .item-total{font-size:13px}
+  .lp-hero h1{font-size:clamp(22px,8vw,32px)}
+  .lp-hero-badges{gap:8px}
+  .lp-hero-badge{font-size:12px;padding:6px 12px}
+  .lp-btn-primary{width:100%;text-align:center}
+  .nav-actions .btn-outline{display:none}
+  .lp-nav .btn-outline{display:none}
 }
 </style>
 </head>
@@ -295,7 +345,7 @@ const LANG={
     faq5q:'Comment passer au plan Solo ?',faq5a:'Un clic depuis ton tableau de bord. Le paiement est sécurisé via Stripe.',
     ctaTitle:'Prêt à facturer en 30 secondes ?',ctaDesc:'Rejoins les indépendants suisses qui ont arrêté de perdre du temps avec leurs factures.',
     ctaBtn:'Créer mon compte gratuit →',ctaSub:'Sans carte bancaire · 3 factures gratuites · Annulable à tout moment',
-    footerBy:'Site créé par',footerAgency:'AgenceOne',footerAgencyDesc:'Agence de création & marketing',
+    footerBy:'Site créé par',footerAgency:'Agencyone',footerAgencyDesc:'Agence de création & marketing',
     google:'Continuer avec Google',forgotPwLabel:'Mot de passe oublié',
     planFeatFree:['3 factures par mois','Export PDF','TVA suisse intégrée','Stockage sécurisé'],
     planFeatSolo:['Factures illimitées','Export PDF premium','TVA suisse intégrée','Support prioritaire','QR-facture Suisse (bientôt)'],
@@ -338,7 +388,7 @@ const LANG={
 <h3>Droit applicable</h3>
 <p>Le présent site et ses conditions d'utilisation sont soumis au droit suisse. Le for judiciaire est en Suisse.</p>
 <h3>Conception et développement</h3>
-<p>Site créé par <strong>AgenceOne</strong> — Agence de création & marketing</p>`,
+<p>Site créé par <strong>Agencyone</strong> — Agence de création & marketing</p>`,
   },
   de:{
     login:'Anmelden',signup:'Konto erstellen',logout:'Abmelden',
@@ -398,7 +448,7 @@ const LANG={
     faq5q:'Wie wechsle ich zum Solo-Plan?',faq5a:'Ein Klick aus deinem Dashboard. Zahlung sicher über Stripe.',
     ctaTitle:'Bereit in 30 Sekunden zu fakturieren?',ctaDesc:'Schliesse dich Schweizer Selbstständigen an, die aufgehört haben, Zeit mit Rechnungen zu verlieren.',
     ctaBtn:'Kostenloses Konto erstellen →',ctaSub:'Ohne Kreditkarte · 3 kostenlose Rechnungen · Jederzeit kündbar',
-    footerBy:'Website erstellt von',footerAgency:'AgenceOne',footerAgencyDesc:'Agentur für Kreation & Marketing',
+    footerBy:'Website erstellt von',footerAgency:'Agencyone',footerAgencyDesc:'Agentur für Kreation & Marketing',
     google:'Mit Google fortfahren',forgotPwLabel:'Passwort zurücksetzen',
     planFeatFree:['3 Rechnungen pro Monat','PDF-Export','Schweizer MwSt. integriert','Sicherer Speicher'],
     planFeatSolo:['Unbegrenzte Rechnungen','Premium PDF-Export','Schweizer MwSt. integriert','Prioritätssupport','QR-Rechnung Schweiz (bald)'],
@@ -441,7 +491,7 @@ const LANG={
 <h3>Anwendbares Recht</h3>
 <p>Diese Website und ihre Nutzungsbedingungen unterliegen dem schweizerischen Recht. Gerichtsstand ist die Schweiz.</p>
 <h3>Konzeption und Entwicklung</h3>
-<p>Website erstellt von <strong>AgenceOne</strong> — Agentur für Kreation &amp; Marketing</p>`,
+<p>Website erstellt von <strong>Agencyone</strong> — Agentur für Kreation &amp; Marketing</p>`,
   },
   en:{
     login:'Sign in',signup:'Create account',logout:'Sign out',
@@ -501,7 +551,7 @@ const LANG={
     faq5q:'How do I upgrade to Solo?',faq5a:'One click from your dashboard. Payment securely handled by Stripe.',
     ctaTitle:'Ready to invoice in 30 seconds?',ctaDesc:'Join Swiss freelancers who stopped wasting time on invoices.',
     ctaBtn:'Create my free account →',ctaSub:'No credit card · 3 free invoices · Cancel anytime',
-    footerBy:'Website created by',footerAgency:'AgenceOne',footerAgencyDesc:'Creative & marketing agency',
+    footerBy:'Website created by',footerAgency:'Agencyone',footerAgencyDesc:'Creative & marketing agency',
     google:'Continue with Google',forgotPwLabel:'Forgot password',
     planFeatFree:['3 invoices per month','PDF export','Swiss VAT built-in','Secure storage'],
     planFeatSolo:['Unlimited invoices','Premium PDF export','Swiss VAT built-in','Priority support','Swiss QR invoice (soon)'],
@@ -544,7 +594,7 @@ const LANG={
 <h3>Governing Law</h3>
 <p>This website and its terms of use are governed by Swiss law. Jurisdiction is in Switzerland.</p>
 <h3>Design and Development</h3>
-<p>Website created by <strong>AgenceOne</strong> — Creative &amp; marketing agency</p>`,
+<p>Website created by <strong>Agencyone</strong> — Creative &amp; marketing agency</p>`,
   }
 };
 function T(key){return(LANG[state.lang]||LANG.fr)[key]||(LANG.fr)[key]||key;}
@@ -998,6 +1048,7 @@ function renderDashboard(){
     <div class="nav-logo" id="goHome">Factura<span>Pro</span></div>
     <div class="nav-actions">
       ${renderLangSwitcher()}
+      <a href="mailto:contact@facturapro.ch?subject=Support FacturaPro" class="btn-sm btn-outline" style="text-decoration:none;display:inline-flex;align-items:center;gap:5px" title="Contacter le support">🐛 Support</a>
       <button class="btn-sm btn-outline" id="gopricing">${T('plans')}</button>
       <button class="btn-gold-sm" id="newInv">${T('newInvoice')}</button>
       <button class="btn-sm btn-outline" id="logout">${T('logout')}</button>
@@ -1684,6 +1735,15 @@ async function saveInvoice(){
     if(!session){state.page='landing';state.invoices=[];render();}
   });
 })();
+</script>
+
+<!-- ===== CRISP LIVE CHAT =====
+     1. Va sur https://crisp.chat → crée un compte gratuit
+     2. Dans Settings > Website > Setup → copie ton Website ID
+     3. Remplace VOTRE_CRISP_WEBSITE_ID ci-dessous par ton vrai ID
+     ============================= -->
+<script>
+window.$crisp=[];window.CRISP_WEBSITE_ID="87cdfd2c-88f8-454a-b114-2ef3470a7f5c";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();
 </script>
 </body>
 </html>
