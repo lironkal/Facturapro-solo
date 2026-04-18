@@ -331,7 +331,7 @@ const LANG={
     badge1:'✓ Sans carte bancaire',badge2:'✓ 3 factures gratuites',badge3:'✓ Annulable à tout moment',
     heroCta:'Commencer gratuitement →',heroNote:'3 factures gratuites pour tester · Sans engagement',
     strip1:'Facture en 30 sec',strip2:'QR facture suisse auto',strip3:'Envoi email direct',strip4:'Données sécurisées CH',
-    beforeTag:'Avant / Après',beforeTitle:'Fini la galère Excel',beforeLabel:'❌ Avant — Excel',afterLabel:'✅ Après — FacturaPro',
+    beforeTag:'Avant / Après',beforeTitle:'Fini la galère Excel',beforeSub:'Une image vaut mille mots.',beforeLabel:'❌ Avant — Excel',afterLabel:'✅ Après — FacturaPro',sendInvoice:'📧 Envoyer la facture',
     stepsTag:'Simple comme bonjour',stepsTitle:'Comment ça marche ?',stepsSub:'Pas de formation, pas de manuel. Tu factures en 3 étapes.',
     step1Title:'Crée ton compte',step1Desc:'Gratuit, sans carte bancaire. Prêt en 30 secondes.',
     step2Title:'Remplis ta facture',step2Desc:'Nom du client, prestations, TVA suisse calculée automatiquement.',
@@ -434,7 +434,7 @@ const LANG={
     badge1:'✓ Ohne Kreditkarte',badge2:'✓ 3 kostenlose Rechnungen',badge3:'✓ Jederzeit kündbar',
     heroCta:'Kostenlos starten →',heroNote:'3 kostenlose Rechnungen zum Testen · Keine Verpflichtung',
     strip1:'Rechnung in 30 Sek.',strip2:'Schweizer QR-Rechnung auto',strip3:'Direkter E-Mail-Versand',strip4:'Sichere Daten CH',
-    beforeTag:'Vorher / Nachher',beforeTitle:'Schluss mit Excel-Chaos',beforeLabel:'❌ Vorher — Excel',afterLabel:'✅ Nachher — FacturaPro',
+    beforeTag:'Vorher / Nachher',beforeTitle:'Schluss mit Excel-Chaos',beforeSub:'Ein Bild sagt mehr als tausend Worte.',beforeLabel:'❌ Vorher — Excel',afterLabel:'✅ Nachher — FacturaPro',sendInvoice:'📧 Rechnung senden',
     stepsTag:'Ganz einfach',stepsTitle:'Wie funktioniert es?',stepsSub:'Keine Schulung, kein Handbuch. In 3 Schritten zur Rechnung.',
     step1Title:'Konto erstellen',step1Desc:'Kostenlos, ohne Kreditkarte. In 30 Sekunden bereit.',
     step2Title:'Rechnung ausfüllen',step2Desc:'Kunde, Leistungen, Schweizer MwSt. automatisch berechnet.',
@@ -537,7 +537,7 @@ const LANG={
     badge1:'✓ No credit card',badge2:'✓ 3 free invoices',badge3:'✓ Cancel anytime',
     heroCta:'Start for free →',heroNote:'3 free invoices to try · No commitment',
     strip1:'Invoice in 30 sec',strip2:'Swiss QR invoice auto',strip3:'Direct email sending',strip4:'Secure data CH',
-    beforeTag:'Before / After',beforeTitle:'No more Excel chaos',beforeLabel:'❌ Before — Excel',afterLabel:'✅ After — FacturaPro',
+    beforeTag:'Before / After',beforeTitle:'No more Excel chaos',beforeSub:'A picture is worth a thousand words.',beforeLabel:'❌ Before — Excel',afterLabel:'✅ After — FacturaPro',sendInvoice:'📧 Send invoice',
     stepsTag:'Dead simple',stepsTitle:'How does it work?',stepsSub:'No training, no manual. Invoice in 3 steps.',
     step1Title:'Create your account',step1Desc:'Free, no credit card. Ready in 30 seconds.',
     step2Title:'Fill in your invoice',step2Desc:'Client name, services, Swiss VAT calculated automatically.',
@@ -710,9 +710,9 @@ function renderLanding(){
   <!-- BEFORE / AFTER VISUEL -->
   <div style="background:var(--s1);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)">
   <div class="lp-section">
-    <span class="lp-section-tag">Avant / Après</span>
-    <h2>Fini la galère Excel</h2>
-    <p class="lp-sub">Une image vaut mille mots.</p>
+    <span class="lp-section-tag">${T('beforeTag')}</span>
+    <h2>${T('beforeTitle')}</h2>
+    <p class="lp-sub">${T('beforeSub')}</p>
     <div class="before-after-grid">
       <!-- BEFORE: Excel chaos -->
       <div style="background:#1a1f2e;border:1px solid rgba(255,80,80,.2);border-radius:12px;padding:20px;overflow:hidden">
@@ -747,7 +747,7 @@ function renderLanding(){
           <div style="font-size:9px;letter-spacing:2px;color:var(--m1);text-transform:uppercase;margin-bottom:6px">Montant TTC</div>
           <div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--g);font-weight:700">2 270.10 CHF</div>
         </div>
-        <div style="background:linear-gradient(135deg,#d4a94e,#9a6e18);border-radius:8px;padding:10px;text-align:center;font-weight:700;color:#0b0b0c;font-size:13px">📧 Envoyer la facture</div>
+        <div style="background:linear-gradient(135deg,#d4a94e,#9a6e18);border-radius:8px;padding:10px;text-align:center;font-weight:700;color:#0b0b0c;font-size:13px">${T('sendInvoice')}</div>
         <div style="margin-top:12px;font-size:11px;color:var(--gl);line-height:1.6">${T('afterItems').join('<br>')}</div>
       </div>
     </div>
@@ -815,32 +815,25 @@ function renderLanding(){
   <!-- PRICING -->
   <div style="background:var(--s1);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)">
   <div class="lp-section">
-    <span class="lp-section-tag">Tarification</span>
-    <h2>Simple et transparent</h2>
-    <p class="lp-sub">Commence gratuitement. Passe Solo quand tu es prêt. Moins cher qu'une heure de comptable.</p>
+    <span class="lp-section-tag">${T('pricTag')}</span>
+    <h2>${T('pricTitle')}</h2>
+    <p class="lp-sub">${T('pricSub')}</p>
     <div class="pricing-grid" style="max-width:620px;margin:0 auto">
       <div class="plan-card plan-free">
-        <div class="plan-name">Gratuit</div>
-        <div><span class="plan-price">0</span><span class="plan-period">CHF / mois</span></div>
+        <div class="plan-name">${T('free')}</div>
+        <div><span class="plan-price">0</span><span class="plan-period">${T('perMonth')}</span></div>
         <ul class="plan-features">
-          <li>3 factures par mois</li>
-          <li>Export PDF</li>
-          <li>TVA suisse intégrée</li>
-          <li>Stockage sécurisé</li>
+          ${T('planFeatFree').map(f=>`<li>${f}</li>`).join('')}
         </ul>
-        <button class="btn-gold" id="lpFreeStart" style="margin-bottom:0">Commencer gratuitement</button>
+        <button class="btn-gold" id="lpFreeStart" style="margin-bottom:0">${T('heroCta')}</button>
       </div>
       <div class="plan-card plan-solo">
         <div class="plan-name">Solo ✨</div>
-        <div><span class="plan-price">9</span><span class="plan-period">CHF / mois</span></div>
+        <div><span class="plan-price">9</span><span class="plan-period">${T('perMonth')}</span></div>
         <ul class="plan-features">
-          <li>Factures illimitées</li>
-          <li>Export PDF premium</li>
-          <li>TVA suisse intégrée</li>
-          <li>Support prioritaire</li>
-          <li>QR-facture Suisse (bientôt)</li>
+          ${T('planFeatSolo').map(f=>`<li>${f}</li>`).join('')}
         </ul>
-        <button class="btn-gold" id="lpSoloStart" style="margin-bottom:0">Commencer gratuitement</button>
+        <button class="btn-gold" id="lpSoloStart" style="margin-bottom:0">${T('heroCta')}</button>
       </div>
     </div>
   </div>
@@ -962,12 +955,12 @@ function renderDashboard(){
     <div style="background:var(--s1);border:1px solid ${atLimit?'rgba(255,100,100,.3)':'var(--bd)'};border-radius:11px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
       <div>
         <div style="font-size:11px;letter-spacing:2px;color:${atLimit?'#ff8080':'var(--g)'};text-transform:uppercase;font-weight:600;margin-bottom:4px">Plan gratuit</div>
-        <div style="font-size:14px;color:var(--tx)">${monthCount} / ${FREE_MONTHLY_LIMIT} factures ce mois-ci</div>
+        <div style="font-size:14px;color:var(--tx)">${monthCount} / ${FREE_MONTHLY_LIMIT} ${T('invoicesMonth')}</div>
       </div>
-      <button class="btn-gold-sm" id="upgradeFromDash">Passer Solo (9 CHF/mois)</button>
+      <button class="btn-gold-sm" id="upgradeFromDash">${T('upgrade')}</button>
     </div>`:`
     <div style="background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(201,168,76,.03));border:1px solid rgba(201,168,76,.3);border-radius:11px;padding:12px 18px;margin-bottom:20px">
-      <div style="font-size:11px;letter-spacing:2px;color:var(--g);text-transform:uppercase;font-weight:600">✨ Plan Solo — Factures illimitées</div>
+      <div style="font-size:11px;letter-spacing:2px;color:var(--g);text-transform:uppercase;font-weight:600">${T('soloPlan')}</div>
     </div>`;
 
   return `<nav class="nav">
@@ -1002,11 +995,11 @@ function renderLimitModal(){
   return `<div id="limitModalBg" style="position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px">
     <div style="background:var(--s1);border:1px solid rgba(201,168,76,.3);border-radius:16px;padding:36px 32px;max-width:420px;width:100%;text-align:center;box-shadow:0 20px 80px rgba(0,0,0,.5)">
       <div style="font-family:'Playfair Display',serif;font-size:42px;color:var(--g);margin-bottom:12px">—</div>
-      <div style="font-size:9px;letter-spacing:4px;color:var(--g);text-transform:uppercase;margin-bottom:10px">Limite atteinte</div>
-      <h2 style="font-family:'Playfair Display',serif;font-size:22px;color:var(--tx);margin-bottom:12px">Tu as utilisé tes 3 factures gratuites ce mois-ci</h2>
-      <p style="font-size:14px;color:var(--m2);line-height:1.6;margin-bottom:24px">Passe au plan <strong style="color:var(--g)">Solo</strong> pour créer des factures illimitées, seulement <strong style="color:var(--gl)">9 CHF/mois</strong>.</p>
-      <button class="btn-gold" id="upgradeFromModal" style="margin-bottom:8px">Passer au plan Solo</button>
-      <button class="btn-ghost" id="closeLimitModal">Plus tard</button>
+      <div style="font-size:9px;letter-spacing:4px;color:var(--g);text-transform:uppercase;margin-bottom:10px">${T('limitTitle')}</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:22px;color:var(--tx);margin-bottom:12px">${T('limit3')}</h2>
+      <p style="font-size:14px;color:var(--m2);line-height:1.6;margin-bottom:24px">${T('limitDesc')}</p>
+      <button class="btn-gold" id="upgradeFromModal" style="margin-bottom:8px">${T('goSolo')}</button>
+      <button class="btn-ghost" id="closeLimitModal">${T('later')}</button>
     </div>
   </div>`;
 }
@@ -1180,39 +1173,32 @@ function renderPricing(){
   return `<nav class="nav">
     <div class="nav-logo" id="goHome">Factura<span>Pro</span></div>
     <div class="nav-actions">
-      <button class="btn-sm btn-outline" id="backDash">Retour</button>
+      <button class="btn-sm btn-outline" id="backDash">${T('back')}</button>
     </div>
   </nav>
   <div class="pricing-wrap">
     <div class="pricing-inner">
-      <span class="label-tag">Tarification</span>
-      <h1 style="font-family:'Playfair Display',serif;font-size:36px;color:var(--tx);margin-top:8px">Choisis ton plan</h1>
-      <p style="color:var(--m2);margin-top:12px">Simple et transparent. Passe Solo quand tu es prêt.</p>
+      <span class="label-tag">${T('pricTag')}</span>
+      <h1 style="font-family:'Playfair Display',serif;font-size:36px;color:var(--tx);margin-top:8px">${T('pricingTitle')}</h1>
+      <p style="color:var(--m2);margin-top:12px">${T('pricingDesc')}</p>
 
       <div class="pricing-grid">
         <div class="plan-card plan-free">
-          <div class="plan-name">Gratuit</div>
-          <div><span class="plan-price">0</span><span class="plan-period">CHF / mois</span></div>
+          <div class="plan-name">${T('free')}</div>
+          <div><span class="plan-price">0</span><span class="plan-period">${T('perMonth')}</span></div>
           <ul class="plan-features">
-            <li>3 factures par mois</li>
-            <li>Export PDF</li>
-            <li>TVA suisse intégrée</li>
-            <li>Stockage sécurisé</li>
+            ${T('planFeatFree').map(f=>`<li>${f}</li>`).join('')}
           </ul>
-          <button class="btn-sm btn-outline" style="width:100%;padding:12px" id="backDash2">Plan actuel</button>
+          <button class="btn-sm btn-outline" style="width:100%;padding:12px" id="backDash2">${T('currentPlan')}</button>
         </div>
 
         <div class="plan-card plan-solo">
           <div class="plan-name">Solo</div>
-          <div><span class="plan-price">9</span><span class="plan-period">CHF / mois</span></div>
+          <div><span class="plan-price">9</span><span class="plan-period">${T('perMonth')}</span></div>
           <ul class="plan-features">
-            <li>Factures illimitées</li>
-            <li>Export PDF premium</li>
-            <li>TVA suisse intégrée</li>
-            <li>Support prioritaire</li>
-            <li>QR-facture Suisse (bientôt)</li>
+            ${T('planFeatSolo').map(f=>`<li>${f}</li>`).join('')}
           </ul>
-          <button class="btn-gold" id="upgradeStripe">Passer au plan Solo</button>
+          <button class="btn-gold" id="upgradeStripe">${T('goSolo')}</button>
         </div>
       </div>
     </div>
