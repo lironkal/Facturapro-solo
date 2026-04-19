@@ -6,6 +6,7 @@
 <title>FacturaPro — Facturation Suisse</title>
 <script src="https://js.stripe.com/v3/"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -629,6 +630,129 @@ function calcTotals(f){
   const vt=sub*Number(f.vat_rate||0)/100;
   return{sub,vt,tot:sub+vt};
 }
+function generateInvoicePDF(f,sub,vt,tot){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const W=210,M=20;
+
+  // ── Header band ──────────────────────────────────────
+  doc.setFillColor(212,169,78);
+  doc.rect(0,0,W,38,'F');
+  doc.setTextColor(11,11,12);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(24);
+  doc.text('FACTURE',M,24);
+  doc.setFontSize(11);
+  doc.setFont('helvetica','normal');
+  doc.text('N° '+(f.number||''),M,32);
+  doc.setFontSize(9);
+  doc.text('Date : '+(f.date||''),W-M,22,{align:'right'});
+  doc.text('Échéance : '+(f.due_date||''),W-M,30,{align:'right'});
+
+  let y=50;
+
+  // ── Client block ──────────────────────────────────────
+  doc.setFillColor(245,245,245);
+  doc.rect(M,y-4,W-2*M,30,'F');
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica','bold');
+  doc.setTextColor(140,140,140);
+  doc.text('CLIENT',M+4,y+1);
+  doc.setFontSize(11);
+  doc.setFont('helvetica','bold');
+  doc.setTextColor(11,11,12);
+  doc.text(f.client_name||'',M+4,y+8);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  doc.setTextColor(70,70,70);
+  let cy=y+14;
+  if(f.client_address){doc.text(f.client_address,M+4,cy);cy+=5;}
+  if(f.client_city){doc.text(f.client_city,M+4,cy);cy+=5;}
+  if(f.client_vat){doc.text('N° TVA : '+f.client_vat,M+4,cy);}
+  y+=38;
+
+  // ── Table header ─────────────────────────────────────
+  doc.setFillColor(11,11,12);
+  doc.rect(M,y,W-2*M,8,'F');
+  doc.setFontSize(8);
+  doc.setFont('helvetica','bold');
+  doc.setTextColor(212,169,78);
+  doc.text('DESCRIPTION',M+3,y+5.5);
+  doc.text('QTÉ',132,y+5.5,{align:'right'});
+  doc.text('P.U.',157,y+5.5,{align:'right'});
+  doc.text('TOTAL CHF',W-M-3,y+5.5,{align:'right'});
+  y+=8;
+
+  // ── Items ─────────────────────────────────────────────
+  (f.items||[]).forEach((item,i)=>{
+    const rh=8;
+    if(i%2===1){doc.setFillColor(250,250,250);doc.rect(M,y,W-2*M,rh,'F');}
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(9);
+    doc.setTextColor(11,11,12);
+    const desc=(item.desc||'').substring(0,52);
+    doc.text(desc,M+3,y+5.5);
+    doc.text(String(Number(item.qty||0)),132,y+5.5,{align:'right'});
+    doc.text(Number(item.price||0).toFixed(2),157,y+5.5,{align:'right'});
+    doc.text((Number(item.qty||0)*Number(item.price||0)).toFixed(2),W-M-3,y+5.5,{align:'right'});
+    y+=rh;
+  });
+
+  y+=6;
+
+  // ── Totals ────────────────────────────────────────────
+  const tx=120,vx=W-M-3;
+  doc.setDrawColor(220,220,220);
+  doc.setLineWidth(0.3);
+  doc.line(tx,y,W-M,y);
+  y+=5;
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  doc.setTextColor(90,90,90);
+  doc.text('Sous-total HT',tx,y);
+  doc.text(sub.toFixed(2)+' CHF',vx,y,{align:'right'});
+  y+=6;
+  doc.text('TVA ('+f.vat_rate+'%)',tx,y);
+  doc.text(vt.toFixed(2)+' CHF',vx,y,{align:'right'});
+  y+=4;
+  doc.setDrawColor(212,169,78);
+  doc.setLineWidth(0.5);
+  doc.line(tx,y,W-M,y);
+  y+=2;
+  doc.setFillColor(212,169,78);
+  doc.rect(tx,y,W-M-tx,9,'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(10);
+  doc.setTextColor(11,11,12);
+  doc.text('TOTAL TTC',tx+3,y+6);
+  doc.text(tot.toFixed(2)+' CHF',vx,y+6,{align:'right'});
+  y+=16;
+
+  // ── Notes ────────────────────────────────────────────
+  if(f.notes&&f.notes.trim()){
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(9);
+    doc.setTextColor(11,11,12);
+    doc.text('Notes :',M,y);
+    y+=5;
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(70,70,70);
+    const lines=doc.splitTextToSize(f.notes,W-2*M);
+    doc.text(lines,M,y);
+    y+=lines.length*5;
+  }
+
+  // ── Footer ────────────────────────────────────────────
+  doc.setFillColor(245,245,245);
+  doc.rect(0,278,W,19,'F');
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  doc.setTextColor(160,160,160);
+  doc.text('Généré avec FacturaPro · facturapro.ch',W/2,287,{align:'center'});
+
+  return doc.output('blob');
+}
+
 function fmtDate(d){
   try{return new Date(d+'T12:00:00').toLocaleDateString('fr-CH',{day:'2-digit',month:'long',year:'numeric'});}
   catch(e){return d;}
@@ -1616,7 +1740,6 @@ async function saveInvoice(){
 }
 
 async function saveAndSendInvoiceByEmail(){
-  // Save first, then open email composer
   syncFormFromDOM();
   const f=state.form;
   if(!f.client_name||!f.client_name.trim()){alert('Le nom du client est requis');return;}
@@ -1624,7 +1747,7 @@ async function saveAndSendInvoiceByEmail(){
   if(isNew&&!canCreateInvoice()){state.showLimitModal=true;state.page='dashboard';render();return;}
   const{sub,vt,tot}=calcTotals(f);
 
-  // Save to DB
+  // 1. Save invoice
   state.saving=true;render();
   const payload={
     user_id:state.session.user.id,
@@ -1650,25 +1773,38 @@ async function saveAndSendInvoiceByEmail(){
     alert('Erreur lors de l\'enregistrement : '+(e.message||e));render();return;
   }
 
-  // Now open email composer
-  const email=prompt('📧 Email du client :', '');
+  // 2. Generate PDF
+  const pdfBlob=generateInvoicePDF(f,sub,vt,tot);
+  const fname='Facture-'+(f.number||'').replace(/[\/\\]/g,'-')+'.pdf';
+  const pdfFile=new File([pdfBlob],fname,{type:'application/pdf'});
+
+  // 3. Try Web Share API (iOS, Android, macOS Safari)
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[pdfFile]})){
+    try{
+      await navigator.share({
+        files:[pdfFile],
+        title:'Facture '+(f.number||'')+' — '+(f.client_name||''),
+        text:'Veuillez trouver ci-joint votre facture n° '+(f.number||'')+' — Total TTC : CHF '+tot.toFixed(2)
+      });
+      return;
+    }catch(e){if(e.name==='AbortError')return;}
+  }
+
+  // 4. Fallback: download PDF + open mailto
+  const blobUrl=URL.createObjectURL(pdfBlob);
+  const a=document.createElement('a');
+  a.href=blobUrl;a.download=fname;document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(blobUrl);},1000);
+
+  const email=prompt('📧 Email du client (le PDF vient d\'être téléchargé — joignez-le à votre email) :','');
   if(!email||!email.trim())return;
-  const lang=state.lang||'fr';
-  const greet=lang==='de'?'Guten Tag,':'Bonjour,';
-  const subject=encodeURIComponent(`Facture ${f.number} – ${f.client_name}`);
-  const items=f.items.map(x=>`  • ${x.desc||'—'} × ${x.qty} = ${(Number(x.qty||0)*Number(x.price||0)).toFixed(2)} CHF`).join('\n');
+  const subject=encodeURIComponent('Facture '+(f.number||'')+' – '+(f.client_name||''));
   const body=encodeURIComponent(
-    `${greet}\n\nVeuillez trouver ci-joint la facture suivante :\n\n`+
-    `Facture n° : ${f.number}\n`+
-    `Date       : ${f.date||''}\n`+
-    `Échéance   : ${f.due_date||''}\n\n`+
-    `Prestations :\n${items}\n\n`+
-    `Montant HT : CHF ${sub.toFixed(2)}\n`+
-    `TVA (${f.vat_rate}%) : CHF ${vt.toFixed(2)}\n`+
-    `Total TTC  : CHF ${tot.toFixed(2)}\n\n`+
-    `Cordialement`
+    'Bonjour,\n\nVeuillez trouver en pièce jointe votre facture n° '+(f.number||'')+'.\n\n'+
+    'Total TTC : CHF '+tot.toFixed(2)+'\nÉchéance : '+(f.due_date||'')+
+    '\n\nCordialement'
   );
-  window.location.href=`mailto:${email.trim()}?subject=${subject}&body=${body}`;
+  window.open('mailto:'+email.trim()+'?subject='+subject+'&body='+body,'_blank');
 }
 
 /* ---------- INIT ---------- */
