@@ -91,6 +91,8 @@ html,body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;
 .btn-save{flex:1;padding:14px;background:linear-gradient(135deg,#d4a94e,#9a6e18);color:#0b0b0c;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:.3s}
 .btn-save:hover{box-shadow:0 6px 28px rgba(201,168,76,.42);transform:translateY(-1px)}
 .btn-save:disabled{opacity:.5;cursor:not-allowed}
+.btn-email{flex:1;padding:14px;background:transparent;color:var(--gold);border:1.5px solid var(--gold);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:.3s}
+.btn-email:hover{background:rgba(212,169,78,.12);box-shadow:0 4px 18px rgba(201,168,76,.25);transform:translateY(-1px)}
 .pricing-wrap{min-height:100vh;background:var(--bg);padding:60px 20px}
 .pricing-inner{max-width:700px;margin:0 auto;text-align:center}
 .pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:48px}
@@ -1098,6 +1100,7 @@ function renderEditor(){
     <div class="actions">
       <button class="btn-cancel" id="cancelEdit">Annuler</button>
       <button class="btn-save" id="saveInv" ${state.saving?'disabled':''}>${state.saving?'Enregistrement...':'Enregistrer'}</button>
+      <button class="btn-email" id="sendEmailInv" title="Envoyer la facture par email">${T('sendInvoice')}</button>
     </div>
   </div>`;
 }
@@ -1499,6 +1502,9 @@ function bindEvents(){
   const saveInv=document.getElementById('saveInv');
   if(saveInv) saveInv.onclick=saveInvoice;
 
+  const sendEmailInv=document.getElementById('sendEmailInv');
+  if(sendEmailInv) sendEmailInv.onclick=saveAndSendInvoiceByEmail;
+
   // ---- PRICING ----
   const upgradeStripe=document.getElementById('upgradeStripe');
   if(upgradeStripe) upgradeStripe.onclick=()=>{
@@ -1607,6 +1613,62 @@ async function saveInvoice(){
     alert('Erreur lors de l\'enregistrement : '+(e.message||e));
     render();
   }
+}
+
+async function saveAndSendInvoiceByEmail(){
+  // Save first, then open email composer
+  syncFormFromDOM();
+  const f=state.form;
+  if(!f.client_name||!f.client_name.trim()){alert('Le nom du client est requis');return;}
+  const isNew=!state.currentInvoice||!state.currentInvoice.id;
+  if(isNew&&!canCreateInvoice()){state.showLimitModal=true;state.page='dashboard';render();return;}
+  const{sub,vt,tot}=calcTotals(f);
+
+  // Save to DB
+  state.saving=true;render();
+  const payload={
+    user_id:state.session.user.id,
+    number:f.number,date:f.date,due_date:f.due_date,
+    client_name:f.client_name,client_address:f.client_address,
+    client_city:f.client_city,client_vat:f.client_vat,
+    vat_rate:Number(f.vat_rate),notes:f.notes,items:f.items,
+    status:f.status||'pending',
+    subtotal:Number(sub.toFixed(2)),vat_amount:Number(vt.toFixed(2)),total:Number(tot.toFixed(2))
+  };
+  try{
+    if(state.currentInvoice&&state.currentInvoice.id){
+      const{error}=await sb.from('invoices').update(payload).eq('id',state.currentInvoice.id);
+      if(error)throw error;
+    }else{
+      const{error}=await sb.from('invoices').insert(payload);
+      if(error)throw error;
+    }
+    await loadInvoices();
+    state.saving=false;render();
+  }catch(e){
+    console.error(e);state.saving=false;
+    alert('Erreur lors de l\'enregistrement : '+(e.message||e));render();return;
+  }
+
+  // Now open email composer
+  const email=prompt('📧 Email du client :', '');
+  if(!email||!email.trim())return;
+  const lang=state.lang||'fr';
+  const greet=lang==='de'?'Guten Tag,':'Bonjour,';
+  const subject=encodeURIComponent(`Facture ${f.number} – ${f.client_name}`);
+  const items=f.items.map(x=>`  • ${x.desc||'—'} × ${x.qty} = ${(Number(x.qty||0)*Number(x.price||0)).toFixed(2)} CHF`).join('\n');
+  const body=encodeURIComponent(
+    `${greet}\n\nVeuillez trouver ci-joint la facture suivante :\n\n`+
+    `Facture n° : ${f.number}\n`+
+    `Date       : ${f.date||''}\n`+
+    `Échéance   : ${f.due_date||''}\n\n`+
+    `Prestations :\n${items}\n\n`+
+    `Montant HT : CHF ${sub.toFixed(2)}\n`+
+    `TVA (${f.vat_rate}%) : CHF ${vt.toFixed(2)}\n`+
+    `Total TTC  : CHF ${tot.toFixed(2)}\n\n`+
+    `Cordialement`
+  );
+  window.location.href=`mailto:${email.trim()}?subject=${subject}&body=${body}`;
 }
 
 /* ---------- INIT ---------- */
