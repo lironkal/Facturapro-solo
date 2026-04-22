@@ -281,9 +281,15 @@ html,body{background:#0b0b0c;color:var(--tx);font-family:'DM Sans',sans-serif;mi
 const SUPABASE_URL='https://gvlmipsqwaiymjtzeejw.supabase.co';
 const SUPABASE_KEY='sb_publishable_WPpOH1UEWHoBpzRs9vpkQA_gkAEqhVq';
 const STRIPE_LINK='https://buy.stripe.com/14A8wHfImevTdMvauP1kA00';
-// 🔧 À FAIRE : Crée un produit "Solo Annuel — 79 CHF/an" sur Stripe et colle son Payment Link ici.
-// Tant que cette constante est vide, le bouton "Payer annuellement" redirigera vers le plan mensuel.
-const STRIPE_LINK_ANNUAL='';
+// Lien annuel : 79 CHF/an
+const STRIPE_LINK_ANNUAL='https://buy.stripe.com/cNi7sD3ZE73r9wf1Yj1kA03';
+// 📩 Email de réception des messages de contact
+const CONTACT_EMAIL='Liron.kallaba@gmail.com';
+// 🔧 OPTIONNEL : pour envoyer les messages SANS ouvrir l'app Mail du client.
+// Va sur https://formspree.io → crée un compte gratuit → crée un nouveau form
+// avec l'email Liron.kallaba@gmail.com → copie l'ID (ex: "xyzabcde") et colle-le ici.
+// Tant que c'est vide, le bouton ouvrira l'app Mail du client en pré-remplissant le message.
+const FORMSPREE_ID='mlgapgzj';
 const{createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
 
@@ -784,6 +790,7 @@ function render(){
     case 'dashboard':app.innerHTML=renderDashboard();break;
     case 'editor':app.innerHTML=renderEditor();break;
     case 'pricing':app.innerHTML=renderPricing();break;
+    case 'contact':app.innerHTML=renderContact();break;
   }
   bindEvents();
 }
@@ -1155,7 +1162,7 @@ function renderDashboard(){
     <div class="nav-logo" id="goHome">Factura<span>Pro</span></div>
     <div class="nav-actions">
       ${renderLangSwitcher()}
-      <a href="mailto:contact@facturapro.ch?subject=Support FacturaPro" class="btn-sm btn-outline" style="text-decoration:none;display:inline-flex;align-items:center;gap:5px" title="Contacter le support">🐛 Support</a>
+      <button class="btn-sm btn-outline" id="goContact" style="display:inline-flex;align-items:center;gap:5px" title="Contacter le support">📩 Support</button>
       <button class="btn-sm btn-outline" id="gopricing">${T('plans')}</button>
       <button class="btn-gold-sm" id="newInv">${T('newInvoice')}</button>
       <button class="btn-sm btn-outline" id="logout">${T('logout')}</button>
@@ -1398,7 +1405,36 @@ function renderPricing(){
   </div>`;
 }
 
-/* ---------- EVENT BINDING ---------- */
+/* ---------- CONTACT PAGE ---------- */
+function renderContact(){
+  const isLogged=!!state.session;
+  const userEmail=isLogged&&state.session.user?state.session.user.email:'';
+  return `<nav class="nav">
+    <div class="nav-logo" id="goHome">Factura<span>Pro</span></div>
+    <div class="nav-actions">
+      <button class="btn-sm btn-outline" id="contactBack">${T('back')}</button>
+    </div>
+  </nav>
+  <div class="auth-wrap" style="align-items:flex-start;padding-top:60px">
+    <div class="auth-box" style="max-width:520px">
+      <span class="label-tag">Support · Contact</span>
+      <h1>Une question ?</h1>
+      <p class="sub">Écris-nous, on te répond rapidement.</p>
+      ${state.msg?`<div class="msg">${esc(state.msg)}</div>`:''}
+
+      <input class="inp" id="contactEmail" type="email" placeholder="Ton email" autocomplete="email" value="${esc(userEmail)}"/>
+      <input class="inp" id="contactSubject" type="text" placeholder="Objet de ton message"/>
+      <textarea class="inp" id="contactMessage" rows="6" placeholder="Décris ta demande, ton problème ou ta suggestion..." style="resize:vertical;min-height:140px;font-family:'DM Sans',sans-serif"></textarea>
+
+      <button class="btn-gold" id="contactSendBtn">📩 Envoyer le message</button>
+      <p style="font-size:11px;color:var(--m1);text-align:center;margin-top:8px;line-height:1.5">
+        Ton message sera envoyé à ${esc(CONTACT_EMAIL)}.<br>Réponse sous 24h en général.
+      </p>
+    </div>
+  </div>`;
+}
+
+
 function bindEvents(){
   // ---- LANGUAGE SWITCHER ----
   document.querySelectorAll('[data-lang]').forEach(btn=>{
@@ -1568,6 +1604,71 @@ function bindEvents(){
 
   const gopricing=document.getElementById('gopricing');
   if(gopricing) gopricing.onclick=()=>{state.page='pricing';render();};
+
+  // ---- CONTACT (Support) ----
+  const goContact=document.getElementById('goContact');
+  if(goContact) goContact.onclick=()=>{state.msg='';state.page='contact';render();};
+
+  const contactBack=document.getElementById('contactBack');
+  if(contactBack) contactBack.onclick=()=>{
+    state.msg='';
+    state.page=state.session?'dashboard':'landing';
+    render();
+  };
+
+  const contactSendBtn=document.getElementById('contactSendBtn');
+  if(contactSendBtn){
+    contactSendBtn.onclick=async()=>{
+      const email=(document.getElementById('contactEmail').value||'').trim();
+      const subject=(document.getElementById('contactSubject').value||'').trim();
+      const message=(document.getElementById('contactMessage').value||'').trim();
+
+      if(!email||!email.includes('@')){state.msg='⚠️ Email valide requis';render();return;}
+      if(!subject){state.msg='⚠️ Objet requis';render();return;}
+      if(!message){state.msg='⚠️ Message requis';render();return;}
+
+      // Mode 1 : Formspree configuré → envoi silencieux
+      if(FORMSPREE_ID&&FORMSPREE_ID.trim()){
+        state.msg='Envoi en cours...';render();
+        try{
+          const res=await fetch('https://formspree.io/f/'+FORMSPREE_ID,{
+            method:'POST',
+            headers:{'Content-Type':'application/json','Accept':'application/json'},
+            body:JSON.stringify({
+              email:email,
+              _replyto:email,
+              _subject:'[FacturaPro Contact] '+subject,
+              subject:subject,
+              message:message
+            })
+          });
+          if(!res.ok)throw new Error('Erreur réseau');
+          state.msg='✓ Message envoyé ! On te répond rapidement.';
+          // Vider les champs
+          const e=document.getElementById('contactEmail');
+          const s=document.getElementById('contactSubject');
+          const m=document.getElementById('contactMessage');
+          if(s)s.value='';
+          if(m)m.value='';
+          render();
+        }catch(e){
+          console.error(e);
+          state.msg='❌ Erreur d\'envoi. Réessaie ou écris directement à '+CONTACT_EMAIL;
+          render();
+        }
+        return;
+      }
+
+      // Mode 2 : Pas de Formspree → fallback mailto
+      const mailSubject=encodeURIComponent('[FacturaPro] '+subject);
+      const mailBody=encodeURIComponent(
+        message+'\n\n---\nDe : '+email+'\nEnvoyé depuis facturapro.ch'
+      );
+      window.location.href='mailto:'+CONTACT_EMAIL+'?subject='+mailSubject+'&body='+mailBody;
+      state.msg='📧 Ton app Mail s\'ouvre. Vérifie l\'envoi puis envoie le mail.';
+      render();
+    };
+  }
 
   // ---- LIMIT MODAL & QUOTA BANNER ----
   const closeLimitModal=document.getElementById('closeLimitModal');
