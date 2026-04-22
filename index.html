@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="theme-color" content="#0b0b0c"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
 <title>FacturaPro — Facturation Suisse</title>
 <script src="https://js.stripe.com/v3/"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -16,7 +19,8 @@
   --bd:rgba(255,255,255,.06);--bdg:rgba(201,168,76,.22);
   --tx:#ede9df;--m1:#505050;--m2:#888480
 }
-html,body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;min-height:100vh}
+html{background-color:#0b0b0c}
+html,body{background:#0b0b0c;color:var(--tx);font-family:'DM Sans',sans-serif;min-height:100vh}
 #app{min-height:100vh}
 .hidden{display:none!important}
 .auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -188,8 +192,8 @@ html,body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;
 .faq-item.open .faq-q::after{content:'－'}
 .faq-a{padding:0 20px;max-height:0;overflow:hidden;font-size:14px;color:var(--m2);line-height:1.7;transition:max-height .3s ease,padding .3s ease}
 .faq-item.open .faq-a{max-height:200px;padding:0 20px 18px}
-.lp-cta-banner{background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(201,168,76,.03));border:1px solid rgba(201,168,76,.2);border-radius:20px;padding:60px 40px;text-align:center;margin:0 20px 80px;max-width:860px;margin-left:auto;margin-right:auto}
-.lp-cta-banner h2{font-family:'Playfair Display',serif;font-size:clamp(22px,3vw,36px);color:var(--tx);margin-bottom:12px}
+.lp-cta-banner{background-color:var(--s1);background-image:linear-gradient(135deg,rgba(201,168,76,.12),rgba(201,168,76,.04));border:1px solid rgba(201,168,76,.3);border-radius:20px;padding:60px 40px;text-align:center;margin:0 20px 80px;max-width:860px;margin-left:auto;margin-right:auto}
+.lp-cta-banner h2{font-family:'Playfair Display',serif;font-size:clamp(22px,3vw,36px);color:var(--gl);margin-bottom:12px}
 .lp-cta-banner p{font-size:15px;color:var(--m2);margin-bottom:28px}
 .lp-footer{border-top:1px solid var(--bd);padding:24px 32px;text-align:center;font-size:12px;color:var(--m1);letter-spacing:1px}
 .lp-footer-links{display:flex;justify-content:center;gap:20px;margin-top:12px;flex-wrap:wrap}
@@ -204,7 +208,7 @@ html,body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;
 .legal-box h3:first-child{margin-top:0}
 .legal-box p{font-size:14px;color:var(--m2);line-height:1.7;margin-bottom:4px}
 /* ===== HERO SECTION ===== */
-.lp-hero-section{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:110px 24px 70px;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(201,168,76,.08),transparent)}
+.lp-hero-section{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:110px 24px 70px;background-color:#0b0b0c;background-image:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(201,168,76,.08),transparent)}
 .lp-hero-h1{font-family:'Playfair Display',serif;font-size:clamp(28px,5vw,56px);font-weight:700;color:var(--tx);line-height:1.15;max-width:780px;margin:0 auto 20px}
 .lp-hero-sub{font-size:17px;color:var(--m2);margin-bottom:32px;max-width:500px;line-height:1.7}
 /* ===== BEFORE/AFTER GRID ===== */
@@ -234,6 +238,7 @@ html,body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;
   .benefits-grid{grid-template-columns:1fr}
   .testimonials-grid{grid-template-columns:1fr}
   .pricing-grid{grid-template-columns:1fr}
+  .compare-grid{grid-template-columns:1fr!important}
   /* CTA BANNER */
   .lp-cta-banner{padding:36px 20px;margin:0 12px 60px}
   .lp-cta-banner h2{font-size:22px}
@@ -276,6 +281,9 @@ html,body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;
 const SUPABASE_URL='https://gvlmipsqwaiymjtzeejw.supabase.co';
 const SUPABASE_KEY='sb_publishable_WPpOH1UEWHoBpzRs9vpkQA_gkAEqhVq';
 const STRIPE_LINK='https://buy.stripe.com/14A8wHfImevTdMvauP1kA00';
+// 🔧 À FAIRE : Crée un produit "Solo Annuel — 79 CHF/an" sur Stripe et colle son Payment Link ici.
+// Tant que cette constante est vide, le bouton "Payer annuellement" redirigera vers le plan mensuel.
+const STRIPE_LINK_ANNUAL='';
 const{createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
 
@@ -318,7 +326,7 @@ const LANG={
     deleteConfirm:'Supprimer cette facture ?',
     freePlan:'Plan gratuit',invoicesMonth:'factures ce mois-ci',upgrade:'Passer Solo (9 CHF/mois)',soloPlan:'✨ Plan Solo — Factures illimitées',
     limitTitle:'Limite atteinte',limit3:'Tu as utilisé tes 3 factures gratuites ce mois-ci',
-    limitDesc:'Passe au plan Solo pour créer des factures illimitées, seulement 9 CHF/mois.',
+    limitDesc:'🔥 Offre limitée : -50% sur les 3 premiers mois. 4.50 CHF/mois, puis 9 CHF/mois. Factures illimitées, édition et suppression incluses.',
     goSolo:'Passer au plan Solo',later:'Plus tard',
     invoiceInfo:'Informations',number:'Numéro',date:'Date',dueDate:'Échéance',
     client:'Client',clientName:'Nom',address:'Adresse',city:'Ville NPA',vat:'N° TVA',
@@ -328,12 +336,13 @@ const LANG={
     printPdf:'Imprimer / PDF',saveError:'Erreur lors de l\'enregistrement : ',clientRequired:'Le nom du client est requis',
     pricingTitle:'Choisis ton plan',pricingDesc:'Simple et transparent. Passe Solo quand tu es prêt.',
     free:'Gratuit',solo:'Solo',perMonth:'CHF / mois',currentPlan:'Plan actuel',
-    heroTag:'Facturation Suisse Simplifiée',
-    heroH1:'Crée et envoie tes factures suisses en <span style="color:var(--g)">30 secondes</span>',
-    heroSub:'QR facture incluse. Envoi email direct. TVA suisse intégrée.',
+    heroTag:'Facturation Suisse · Le moins cher du marché',
+    heroH1:'Le logiciel de facturation suisse <span style="color:var(--g)">le moins cher</span>, sans compromis',
+    heroSub:'Dès 6.58 CHF/mois. QR-facture native. TVA suisse intégrée. 100% suisse.',
     badge1:'✓ Sans carte bancaire',badge2:'✓ 3 factures gratuites',badge3:'✓ Annulable à tout moment',
     heroCta:'Commencer gratuitement →',heroNote:'3 factures gratuites pour tester · Sans engagement',
     strip1:'Facture en 30 sec',strip2:'QR facture suisse auto',strip3:'Envoi email direct',strip4:'Données sécurisées CH',
+    compareTag:'Comparaison',compareTitle:'Pourquoi payer 3× plus ?',compareSub:'Les autres outils suisses facturent 25 à 35 CHF/mois pour les mêmes fonctions de base.',compareSave:'Économise jusqu\'à 312 CHF/an',compareMonthly:'/mois',
     beforeTag:'Avant / Après',beforeTitle:'Fini la galère Excel',beforeSub:'Une image vaut mille mots.',beforeLabel:'❌ Avant — Excel',afterLabel:'✅ Après — FacturaPro',sendInvoice:'📧 Envoyer la facture',
     stepsTag:'Simple comme bonjour',stepsTitle:'Comment ça marche ?',stepsSub:'Pas de formation, pas de manuel. Tu factures en 3 étapes.',
     step1Title:'Crée ton compte',step1Desc:'Gratuit, sans carte bancaire. Prêt en 30 secondes.',
@@ -359,8 +368,9 @@ const LANG={
     ctaBtn:'Créer mon compte gratuit →',ctaSub:'Sans carte bancaire · 3 factures gratuites · Annulable à tout moment',
     footerBy:'Site créé par',footerAgency:'Agencyone',footerAgencyDesc:'Agence de création & marketing',
     google:'Continuer avec Google',forgotPwLabel:'Mot de passe oublié',
-    planFeatFree:['3 factures par mois','Export PDF','TVA suisse intégrée','Stockage sécurisé'],
-    planFeatSolo:['Factures illimitées','Export PDF premium','TVA suisse intégrée','Support prioritaire','QR-facture Suisse (bientôt)'],
+    planFeatFree:['3 factures par mois','Création uniquement (édition et suppression en plan Solo)','Export PDF','TVA suisse intégrée','Stockage sécurisé'],
+    planFeatSolo:['Factures illimitées','Modifier et supprimer tes factures','Relances de paiement auto (bientôt)','Export PDF premium','QR-facture Suisse native','Support prioritaire'],
+    annualLabel:'Annuel',monthlyLabel:'Mensuel',annualPrice:'79',annualPerYear:'CHF / an',annualEquiv:'soit 6.58 CHF/mois',annualSave:'Économise 29 CHF',payAnnual:'Payer annuellement',
     beforeItems:['😤 2h perdues','🐛 Formules cassées','😵 Mise en page qui part'],
     afterItems:['⚡ 30 secondes chrono','✓ TVA calculée auto','✓ QR facture incluse'],
     cguLink:'Conditions générales',mentionsLink:'Mentions légales',
@@ -421,7 +431,7 @@ const LANG={
     deleteConfirm:'Diese Rechnung löschen?',
     freePlan:'Kostenloser Plan',invoicesMonth:'Rechnungen diesen Monat',upgrade:'Zu Solo wechseln (9 CHF/Mt.)',soloPlan:'✨ Solo-Plan — Unbegrenzte Rechnungen',
     limitTitle:'Limit erreicht',limit3:'Du hast deine 3 kostenlosen Rechnungen diesen Monat aufgebraucht',
-    limitDesc:'Wechsle zum Solo-Plan für unbegrenzte Rechnungen, nur 9 CHF/Monat.',
+    limitDesc:'🔥 Begrenztes Angebot: -50% in den ersten 3 Monaten. 4.50 CHF/Monat, dann 9 CHF/Monat. Unbegrenzte Rechnungen, Bearbeitung und Löschung inklusive.',
     goSolo:'Zum Solo-Plan wechseln',later:'Später',
     invoiceInfo:'Informationen',number:'Nummer',date:'Datum',dueDate:'Fälligkeitsdatum',
     client:'Kunde',clientName:'Name',address:'Adresse',city:'PLZ Ort',vat:'MwSt.-Nr.',
@@ -431,12 +441,13 @@ const LANG={
     printPdf:'Drucken / PDF',saveError:'Fehler beim Speichern: ',clientRequired:'Kundenname erforderlich',
     pricingTitle:'Plan wählen',pricingDesc:'Einfach und transparent.',
     free:'Kostenlos',solo:'Solo',perMonth:'CHF / Monat',currentPlan:'Aktueller Plan',
-    heroTag:'Vereinfachte Schweizer Rechnungsstellung',
-    heroH1:'Schweizer Rechnungen in <span style="color:var(--g)">30 Sekunden</span> erstellen und senden',
-    heroSub:'QR-Rechnung inklusive. Direkter E-Mail-Versand. Schweizer MwSt. automatisch.',
+    heroTag:'Schweizer Rechnungsstellung · Am günstigsten',
+    heroH1:'Die <span style="color:var(--g)">günstigste</span> Schweizer Rechnungssoftware, ohne Kompromisse',
+    heroSub:'Ab 6.58 CHF/Monat. Swiss QR-Rechnung nativ. MwSt. automatisch. 100% Schweizer.',
     badge1:'✓ Ohne Kreditkarte',badge2:'✓ 3 kostenlose Rechnungen',badge3:'✓ Jederzeit kündbar',
     heroCta:'Kostenlos starten →',heroNote:'3 kostenlose Rechnungen zum Testen · Keine Verpflichtung',
     strip1:'Rechnung in 30 Sek.',strip2:'Schweizer QR-Rechnung auto',strip3:'Direkter E-Mail-Versand',strip4:'Sichere Daten CH',
+    compareTag:'Vergleich',compareTitle:'Warum 3× mehr zahlen?',compareSub:'Andere Schweizer Tools verlangen 25 bis 35 CHF/Monat für dieselben Grundfunktionen.',compareSave:'Spare bis zu 312 CHF/Jahr',compareMonthly:'/Monat',
     beforeTag:'Vorher / Nachher',beforeTitle:'Schluss mit Excel-Chaos',beforeSub:'Ein Bild sagt mehr als tausend Worte.',beforeLabel:'❌ Vorher — Excel',afterLabel:'✅ Nachher — FacturaPro',sendInvoice:'📧 Rechnung senden',
     stepsTag:'Ganz einfach',stepsTitle:'Wie funktioniert es?',stepsSub:'Keine Schulung, kein Handbuch. In 3 Schritten zur Rechnung.',
     step1Title:'Konto erstellen',step1Desc:'Kostenlos, ohne Kreditkarte. In 30 Sekunden bereit.',
@@ -462,8 +473,9 @@ const LANG={
     ctaBtn:'Kostenloses Konto erstellen →',ctaSub:'Ohne Kreditkarte · 3 kostenlose Rechnungen · Jederzeit kündbar',
     footerBy:'Website erstellt von',footerAgency:'Agencyone',footerAgencyDesc:'Agentur für Kreation & Marketing',
     google:'Mit Google fortfahren',forgotPwLabel:'Passwort zurücksetzen',
-    planFeatFree:['3 Rechnungen pro Monat','PDF-Export','Schweizer MwSt. integriert','Sicherer Speicher'],
-    planFeatSolo:['Unbegrenzte Rechnungen','Premium PDF-Export','Schweizer MwSt. integriert','Prioritätssupport','QR-Rechnung Schweiz (bald)'],
+    planFeatFree:['3 Rechnungen pro Monat','Nur Erstellung (Bearbeiten & Löschen im Solo-Plan)','PDF-Export','Schweizer MwSt. integriert','Sicherer Speicher'],
+    planFeatSolo:['Unbegrenzte Rechnungen','Rechnungen bearbeiten und löschen','Automatische Zahlungserinnerungen (bald)','Premium PDF-Export','Schweizer QR-Rechnung nativ','Prioritätssupport'],
+    annualLabel:'Jährlich',monthlyLabel:'Monatlich',annualPrice:'79',annualPerYear:'CHF / Jahr',annualEquiv:'das sind 6.58 CHF/Monat',annualSave:'Spare 29 CHF',payAnnual:'Jährlich zahlen',
     beforeItems:['😤 2h verloren','🐛 Defekte Formeln','😵 Layout verschoben'],
     afterItems:['⚡ 30 Sekunden','✓ MwSt. automatisch','✓ QR-Rechnung dabei'],
     cguLink:'AGB',mentionsLink:'Impressum',
@@ -524,7 +536,7 @@ const LANG={
     deleteConfirm:'Delete this invoice?',
     freePlan:'Free plan',invoicesMonth:'invoices this month',upgrade:'Go Solo (9 CHF/mo)',soloPlan:'✨ Solo Plan — Unlimited invoices',
     limitTitle:'Limit reached',limit3:'You\'ve used your 3 free invoices this month',
-    limitDesc:'Upgrade to Solo for unlimited invoices, only 9 CHF/month.',
+    limitDesc:'🔥 Limited offer: -50% for the first 3 months. 4.50 CHF/mo, then 9 CHF/mo. Unlimited invoices, editing and deletion included.',
     goSolo:'Upgrade to Solo',later:'Later',
     invoiceInfo:'Details',number:'Number',date:'Date',dueDate:'Due date',
     client:'Client',clientName:'Name',address:'Address',city:'City / ZIP',vat:'VAT No.',
@@ -534,12 +546,13 @@ const LANG={
     printPdf:'Print / PDF',saveError:'Error saving: ',clientRequired:'Client name is required',
     pricingTitle:'Choose your plan',pricingDesc:'Simple and transparent.',
     free:'Free',solo:'Solo',perMonth:'CHF / month',currentPlan:'Current plan',
-    heroTag:'Simplified Swiss Invoicing',
-    heroH1:'Create and send Swiss invoices in <span style="color:var(--g)">30 seconds</span>',
-    heroSub:'QR invoice included. Direct email sending. Swiss VAT built-in.',
+    heroTag:'Swiss Invoicing · Cheapest on the market',
+    heroH1:'The <span style="color:var(--g)">cheapest</span> Swiss invoicing software, no compromises',
+    heroSub:'From 6.58 CHF/month. Native Swiss QR-bill. VAT automatic. 100% Swiss.',
     badge1:'✓ No credit card',badge2:'✓ 3 free invoices',badge3:'✓ Cancel anytime',
     heroCta:'Start for free →',heroNote:'3 free invoices to try · No commitment',
     strip1:'Invoice in 30 sec',strip2:'Swiss QR invoice auto',strip3:'Direct email sending',strip4:'Secure data CH',
+    compareTag:'Comparison',compareTitle:'Why pay 3× more?',compareSub:'Other Swiss tools charge 25 to 35 CHF/month for the same core features.',compareSave:'Save up to 312 CHF/year',compareMonthly:'/mo',
     beforeTag:'Before / After',beforeTitle:'No more Excel chaos',beforeSub:'A picture is worth a thousand words.',beforeLabel:'❌ Before — Excel',afterLabel:'✅ After — FacturaPro',sendInvoice:'📧 Send invoice',
     stepsTag:'Dead simple',stepsTitle:'How does it work?',stepsSub:'No training, no manual. Invoice in 3 steps.',
     step1Title:'Create your account',step1Desc:'Free, no credit card. Ready in 30 seconds.',
@@ -565,8 +578,9 @@ const LANG={
     ctaBtn:'Create my free account →',ctaSub:'No credit card · 3 free invoices · Cancel anytime',
     footerBy:'Website created by',footerAgency:'Agencyone',footerAgencyDesc:'Creative & marketing agency',
     google:'Continue with Google',forgotPwLabel:'Forgot password',
-    planFeatFree:['3 invoices per month','PDF export','Swiss VAT built-in','Secure storage'],
-    planFeatSolo:['Unlimited invoices','Premium PDF export','Swiss VAT built-in','Priority support','Swiss QR invoice (soon)'],
+    planFeatFree:['3 invoices per month','Creation only (edit & delete in Solo plan)','PDF export','Swiss VAT built-in','Secure storage'],
+    planFeatSolo:['Unlimited invoices','Edit and delete your invoices','Automatic payment reminders (soon)','Premium PDF export','Native Swiss QR invoice','Priority support'],
+    annualLabel:'Annual',monthlyLabel:'Monthly',annualPrice:'79',annualPerYear:'CHF / year',annualEquiv:'equals 6.58 CHF/month',annualSave:'Save 29 CHF',payAnnual:'Pay annually',
     beforeItems:['😤 2h wasted','🐛 Broken formulas','😵 Layout shifts'],
     afterItems:['⚡ 30 seconds','✓ VAT auto-calculated','✓ QR invoice included'],
     cguLink:'Terms of Service',mentionsLink:'Legal Notice',
@@ -833,6 +847,36 @@ function renderLanding(){
     <div class="lp-strip-item"><span>🔒</span><span>${T('strip4')}</span></div>
   </div>
 
+  <!-- COMPARISON -->
+  <div style="background:var(--bg)">
+  <div class="lp-section">
+    <span class="lp-section-tag">${T('compareTag')}</span>
+    <h2>${T('compareTitle')}</h2>
+    <p class="lp-sub">${T('compareSub')}</p>
+    <div class="compare-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:760px;margin:0 auto">
+      <div style="background:var(--s1);border:1px solid var(--bd);border-radius:13px;padding:22px 18px;text-align:center">
+        <div style="font-size:11px;letter-spacing:3px;color:var(--m2);text-transform:uppercase;font-weight:600;margin-bottom:10px">bexio</div>
+        <div style="font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--tx)">35<span style="font-size:13px;color:var(--m2);font-family:'DM Sans',sans-serif;font-weight:400"> CHF${T('compareMonthly')}</span></div>
+        <div style="font-size:11px;color:var(--m2);margin-top:8px">420 CHF / an</div>
+      </div>
+      <div style="background:var(--s1);border:1px solid var(--bd);border-radius:13px;padding:22px 18px;text-align:center">
+        <div style="font-size:11px;letter-spacing:3px;color:var(--m2);text-transform:uppercase;font-weight:600;margin-bottom:10px">Magic Heidi</div>
+        <div style="font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--tx)">25<span style="font-size:13px;color:var(--m2);font-family:'DM Sans',sans-serif;font-weight:400"> CHF${T('compareMonthly')}</span></div>
+        <div style="font-size:11px;color:var(--m2);margin-top:8px">300 CHF / an</div>
+      </div>
+      <div style="background:linear-gradient(135deg,rgba(201,168,76,.14),rgba(201,168,76,.04));border:1.5px solid var(--g);border-radius:13px;padding:22px 18px;text-align:center;position:relative;box-shadow:0 6px 30px rgba(201,168,76,.18)">
+        <div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#d4a94e,#9a6e18);color:#0b0b0c;font-size:9px;letter-spacing:2px;font-weight:700;padding:4px 12px;border-radius:20px;white-space:nowrap">FACTURAPRO</div>
+        <div style="font-size:11px;letter-spacing:3px;color:var(--g);text-transform:uppercase;font-weight:600;margin-bottom:10px;margin-top:4px">&nbsp;</div>
+        <div style="font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--gl)">9<span style="font-size:13px;color:var(--gl);font-family:'DM Sans',sans-serif;font-weight:400"> CHF${T('compareMonthly')}</span></div>
+        <div style="font-size:11px;color:var(--gl);margin-top:8px;font-weight:600">79 CHF / an · -27%</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:24px">
+      <span style="display:inline-block;background:var(--gd);color:var(--g);border:1px solid rgba(201,168,76,.3);padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600">💰 ${T('compareSave')}</span>
+    </div>
+  </div>
+  </div>
+
   <!-- BEFORE / AFTER VISUEL -->
   <div style="background:var(--s1);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)">
   <div class="lp-section">
@@ -956,10 +1000,14 @@ function renderLanding(){
       <div class="plan-card plan-solo">
         <div class="plan-name">Solo ✨</div>
         <div><span class="plan-price">9</span><span class="plan-period">${T('perMonth')}</span></div>
+        <div style="margin-top:8px;padding:10px 12px;background:var(--gd);border:1px solid rgba(201,168,76,.3);border-radius:8px;font-size:12px;color:var(--gl);line-height:1.5">
+          💰 <strong>${T('annualLabel')} :</strong> ${T('annualPrice')} ${T('annualPerYear')} — ${T('annualEquiv')} (${T('annualSave')})
+        </div>
         <ul class="plan-features">
           ${T('planFeatSolo').map(f=>`<li>${f}</li>`).join('')}
         </ul>
-        <button class="btn-gold" id="lpSoloStart" style="margin-bottom:0">${T('heroCta')}</button>
+        <button class="btn-gold" id="lpSoloStart" style="margin-bottom:8px">Mensuel · 9 CHF/mois</button>
+        <button class="btn-sm btn-outline" id="lpSoloAnnual" style="width:100%;padding:10px 0">${T('payAnnual')} · ${T('annualPrice')} ${T('annualPerYear')}</button>
       </div>
     </div>
   </div>
@@ -981,7 +1029,8 @@ function renderLanding(){
   </div>
   </div>
 
-  <!-- CTA BANNER -->
+  <!-- CTA BANNER + FOOTER (wrapped in explicit dark bg) -->
+  <div style="background:var(--bg)">
   <div class="lp-cta-banner">
     <h2>${T('ctaTitle')}</h2>
     <p>${T('ctaDesc')}</p>
@@ -1000,6 +1049,7 @@ function renderLanding(){
       ${T('footerBy')} <span style="color:var(--g);font-weight:600">${T('footerAgency')}</span> — ${T('footerAgencyDesc')}
     </div>
   </footer>
+  </div>
   ${renderLegal()}`;
 }
 
@@ -1060,6 +1110,7 @@ function renderReset(){
 
 /* ---------- DASHBOARD ---------- */
 function renderDashboard(){
+  const isSoloPlan=state.plan==='solo';
   const invCards=state.invoices.map(inv=>`
     <div class="inv-card">
       <div>
@@ -1069,19 +1120,30 @@ function renderDashboard(){
       <div class="inv-right">
         <span class="inv-amount">${Number(inv.total||0).toFixed(2)} CHF</span>
         <span class="badge ${inv.status==='paid'?'badge-paid':'badge-pending'}" data-toggle-status="${inv.id}" title="Cliquer pour changer">${inv.status==='paid'?'Payée':'En attente'}</span>
-        <button class="btn-edit" data-edit="${inv.id}">Éditer</button>
-        <button class="btn-del" data-del="${inv.id}">Supprimer</button>
+        ${isSoloPlan
+          ? `<button class="btn-edit" data-edit="${inv.id}">Éditer</button>
+             <button class="btn-del" data-del="${inv.id}">Supprimer</button>`
+          : `<span title="Éditer & supprimer sont inclus dans le plan Solo" style="font-size:11px;color:var(--m1);padding:6px 10px;border:1px dashed rgba(255,255,255,.1);border-radius:6px;letter-spacing:1px">🔒 Solo</span>`
+        }
       </div>
     </div>`).join('');
 
   const monthCount=countInvoicesThisMonth();
   const isFree=state.plan!=='solo';
   const atLimit=isFree&&monthCount>=FREE_MONTHLY_LIMIT;
+  const nearLimit=isFree&&monthCount===FREE_MONTHLY_LIMIT-1;
+  const bannerBorder=atLimit?'rgba(255,100,100,.35)':nearLimit?'rgba(201,168,76,.5)':'var(--bd)';
+  const bannerAccent=atLimit?'#ff8080':'var(--g)';
+  const bannerExtra=atLimit
+    ? ` · <span style="color:#ff8080;font-weight:600">⚠️ Limite atteinte</span>`
+    : nearLimit
+      ? ` · <span style="color:var(--g);font-weight:600">⚠️ Plus qu'1 facture gratuite</span>`
+      : '';
   const quotaBanner=isFree?`
-    <div style="background:var(--s1);border:1px solid ${atLimit?'rgba(255,100,100,.3)':'var(--bd)'};border-radius:11px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
+    <div style="background:var(--s1);border:1px solid ${bannerBorder};border-radius:11px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
       <div>
-        <div style="font-size:11px;letter-spacing:2px;color:${atLimit?'#ff8080':'var(--g)'};text-transform:uppercase;font-weight:600;margin-bottom:4px">Plan gratuit</div>
-        <div style="font-size:14px;color:var(--tx)">${monthCount} / ${FREE_MONTHLY_LIMIT} ${T('invoicesMonth')}</div>
+        <div style="font-size:11px;letter-spacing:2px;color:${bannerAccent};text-transform:uppercase;font-weight:600;margin-bottom:4px">Plan gratuit</div>
+        <div style="font-size:14px;color:var(--tx)">${monthCount} / ${FREE_MONTHLY_LIMIT} ${T('invoicesMonth')}${bannerExtra}</div>
       </div>
       <button class="btn-gold-sm" id="upgradeFromDash">${T('upgrade')}</button>
     </div>`:`
@@ -1322,10 +1384,14 @@ function renderPricing(){
         <div class="plan-card plan-solo">
           <div class="plan-name">Solo</div>
           <div><span class="plan-price">9</span><span class="plan-period">${T('perMonth')}</span></div>
+          <div style="margin-top:8px;padding:10px 12px;background:var(--gd);border:1px solid rgba(201,168,76,.3);border-radius:8px;font-size:12px;color:var(--gl);line-height:1.5">
+            💰 <strong>${T('annualLabel')} :</strong> ${T('annualPrice')} ${T('annualPerYear')} — ${T('annualEquiv')} (${T('annualSave')})
+          </div>
           <ul class="plan-features">
             ${T('planFeatSolo').map(f=>`<li>${f}</li>`).join('')}
           </ul>
-          <button class="btn-gold" id="upgradeStripe">${T('goSolo')}</button>
+          <button class="btn-gold" id="upgradeStripe" style="margin-bottom:8px">Mensuel · 9 CHF/mois</button>
+          <button class="btn-sm btn-outline" id="upgradeStripeAnnual" style="width:100%;padding:10px 0">${T('payAnnual')} · ${T('annualPrice')} ${T('annualPerYear')}</button>
         </div>
       </div>
     </div>
@@ -1352,6 +1418,11 @@ function bindEvents(){
   if(lpFreeStart) lpFreeStart.onclick=()=>{state.authMode='signup';state.msg='';state.page='auth';render();};
   const lpSoloStart=document.getElementById('lpSoloStart');
   if(lpSoloStart) lpSoloStart.onclick=()=>{state.authMode='signup';state.msg='';state.page='auth';render();};
+  const lpSoloAnnual=document.getElementById('lpSoloAnnual');
+  if(lpSoloAnnual) lpSoloAnnual.onclick=()=>{
+    const url=STRIPE_LINK_ANNUAL||STRIPE_LINK;
+    window.open(url,'_blank','noopener,noreferrer');
+  };
   const lpBottomCta=document.getElementById('lpBottomCta');
   if(lpBottomCta) lpBottomCta.onclick=()=>{state.authMode='signup';state.msg='';state.page='auth';render();};
   // FAQ accordion
@@ -1520,6 +1591,10 @@ function bindEvents(){
 
   document.querySelectorAll('[data-edit]').forEach(btn=>{
     btn.onclick=()=>{
+      // 🔒 Garde anti-contournement : édition réservée au plan Solo
+      if(state.plan!=='solo'){
+        state.showLimitModal=true;render();return;
+      }
       const id=btn.getAttribute('data-edit');
       const inv=state.invoices.find(i=>String(i.id)===String(id));
       if(inv){
@@ -1540,6 +1615,10 @@ function bindEvents(){
 
   document.querySelectorAll('[data-del]').forEach(btn=>{
     btn.onclick=async()=>{
+      // 🔒 Garde anti-contournement : suppression réservée au plan Solo
+      if(state.plan!=='solo'){
+        state.showLimitModal=true;render();return;
+      }
       if(!confirm('Supprimer cette facture ?'))return;
       const id=btn.getAttribute('data-del');
       await sb.from('invoices').delete().eq('id',id);
@@ -1633,6 +1712,11 @@ function bindEvents(){
   const upgradeStripe=document.getElementById('upgradeStripe');
   if(upgradeStripe) upgradeStripe.onclick=()=>{
     window.open(STRIPE_LINK,'_blank','noopener,noreferrer');
+  };
+  const upgradeStripeAnnual=document.getElementById('upgradeStripeAnnual');
+  if(upgradeStripeAnnual) upgradeStripeAnnual.onclick=()=>{
+    const url=STRIPE_LINK_ANNUAL||STRIPE_LINK;
+    window.open(url,'_blank','noopener,noreferrer');
   };
 }
 
