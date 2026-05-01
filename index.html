@@ -1319,7 +1319,7 @@ function renderEditor(){
       <div style="display:flex;gap:6px">
         <button id="tabEdit" style="padding:6px 14px;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;background:transparent;color:#888480">Éditer</button>
         <button id="tabPreview" style="padding:6px 14px;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;background:#c9a84c;color:#0b0b0c">Aperçu</button>
-        <button class="btn-gold-sm no-print" id="sharePdfInv">Partager PDF</button>
+        <button class="btn-gold-sm no-print" id="downloadPdfInv">Télécharger PDF</button>
         <button class="btn-sm btn-outline no-print" id="printInv">Imprimer / PDF</button>
       </div>
     </nav>
@@ -1853,8 +1853,8 @@ function bindEvents(){
 
   const printInv=document.getElementById('printInv');
   if(printInv) printInv.onclick=()=>window.print();
-  const sharePdfInv=document.getElementById('sharePdfInv');
-  if(sharePdfInv) sharePdfInv.onclick=shareCurrentInvoicePdf;
+  const downloadPdfInv=document.getElementById('downloadPdfInv');
+  if(downloadPdfInv) downloadPdfInv.onclick=downloadCurrentInvoicePdf;
 
   const addItem=document.getElementById('addItem');
   if(addItem) addItem.onclick=()=>{syncFormFromDOM();state.form.items.push({desc:'',qty:1,price:0});render();};
@@ -2067,14 +2067,6 @@ function canSharePdfFile(file){
   return !!(navigator.share&&file);
 }
 
-function invoiceShareText(f,tot){
-  return 'Veuillez trouver ci-joint votre facture n° '+(f.number||'')+' — Total TTC : CHF '+tot.toFixed(2);
-}
-
-function invoiceShareTextWithUrl(f,tot,url){
-  return invoiceShareText(f,tot)+'\n\nTélécharger le PDF : '+url;
-}
-
 function downloadPdfBlob(pdfBlob,fname){
   const blobUrl=URL.createObjectURL(pdfBlob);
   const a=document.createElement('a');
@@ -2085,112 +2077,18 @@ function downloadPdfBlob(pdfBlob,fname){
   setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(blobUrl);},1000);
 }
 
-async function uploadInvoicePdfAndGetUrl(pdfBlob,fname){
-  if(!state.session)throw new Error('Utilisateur non connecté.');
-  const safeName=fname.replace(/[^a-zA-Z0-9._-]/g,'-');
-  const path=state.session.user.id+'/'+Date.now()+'-'+safeName;
-  const{error:uploadError}=await sb.storage
-    .from('invoice-pdfs')
-    .upload(path,pdfBlob,{contentType:'application/pdf',upsert:true});
-  if(uploadError)throw uploadError;
-  const{data,error:urlError}=await sb.storage
-    .from('invoice-pdfs')
-    .createSignedUrl(path,60*60*24*30);
-  if(urlError)throw urlError;
-  return data.signedUrl;
-}
-
-function showInvoiceShareSheet(){
-  return new Promise(resolve=>{
-    const old=document.getElementById('invoiceShareOverlay');
-    if(old)old.remove();
-    const overlay=document.createElement('div');
-    overlay.className='share-overlay';
-    overlay.id='invoiceShareOverlay';
-    overlay.innerHTML=`<div class="share-sheet">
-      <div class="share-title">Partager la facture</div>
-      <div class="share-sub">Choisis une option. Mail, SMS et WhatsApp recevront un lien sécurisé vers le PDF. Fichier télécharge le PDF.</div>
-      <div class="share-grid">
-        <button class="share-option" data-share-action="mail"><span class="share-ico">@</span><span>Mail</span></button>
-        <button class="share-option" data-share-action="sms"><span class="share-ico">SMS</span><span>SMS</span></button>
-        <button class="share-option" data-share-action="whatsapp"><span class="share-ico">WA</span><span>WhatsApp</span></button>
-        <button class="share-option" data-share-action="download"><span class="share-ico">↓</span><span>Fichier</span></button>
-      </div>
-      <button class="share-cancel" data-share-action="cancel">Annuler</button>
-    </div>`;
-    document.body.appendChild(overlay);
-    overlay.onclick=e=>{
-      const btn=e.target.closest('[data-share-action]');
-      if(!btn)return;
-      const action=btn.getAttribute('data-share-action');
-      overlay.remove();
-      resolve(action==='cancel'?null:action);
-    };
-  });
-}
-
-function openMailDraft(email,f,tot,url){
-  const subject=encodeURIComponent('Facture '+(f.number||'')+' – '+(f.client_name||''));
-  const body=encodeURIComponent(
-    'Bonjour,\n\nVeuillez trouver ci-joint votre facture n° '+(f.number||'')+'.\n\n'+
-    'Total TTC : CHF '+tot.toFixed(2)+'\nÉchéance : '+(f.due_date||'')+
-    (url?'\n\nTélécharger le PDF : '+url:'')+
-    '\n\nCordialement'
-  );
-  window.location.href='mailto:'+email.trim()+'?subject='+subject+'&body='+body;
-}
-
-async function sharePdfWithNativeOrSheet(f,sub,vt,tot,saveBeforeShare){
+function downloadInvoicePdf(f,sub,vt,tot){
   const pdfBlob=generateInvoicePDF(f,sub,vt,tot);
   const fname='Facture-'+(f.number||'').replace(/[\/\\]/g,'-')+'.pdf';
-
-  const action=await showInvoiceShareSheet();
-  if(!action)return;
-
-  if(saveBeforeShare){
-    try{
-      state.saving=true;render();
-      await saveBeforeShare();
-    }catch(e){
-      console.error(e);state.saving=false;
-      alert('Erreur lors de l\'enregistrement : '+(e.message||e));render();return;
-    }
-  }
-
-  state.saving=false;
-  if(action==='download'){
-    downloadPdfBlob(pdfBlob,fname);
-  }else{
-    let pdfUrl='';
-    try{
-      state.saving=true;render();
-      pdfUrl=await uploadInvoicePdfAndGetUrl(pdfBlob,fname);
-      state.saving=false;
-    }catch(e){
-      console.error(e);state.saving=false;
-      downloadPdfBlob(pdfBlob,fname);
-      alert('Le PDF a été enregistré, mais le lien de partage n’a pas pu être créé. Vérifie que le bucket Supabase Storage "invoice-pdfs" existe.');
-      state.page='dashboard';render();
-      return;
-    }
-    if(action==='mail'){
-      const email=prompt('📧 Email du client :','');
-      if(email&&email.trim())openMailDraft(email,f,tot,pdfUrl);
-    }else if(action==='whatsapp'){
-      window.open('https://wa.me/?text='+encodeURIComponent(invoiceShareTextWithUrl(f,tot,pdfUrl)),'_blank','noopener,noreferrer');
-    }else if(action==='sms'){
-      window.location.href='sms:?&body='+encodeURIComponent(invoiceShareTextWithUrl(f,tot,pdfUrl));
-    }
-  }
-  state.page='dashboard';render();
+  downloadPdfBlob(pdfBlob,fname);
 }
 
-async function shareCurrentInvoicePdf(){
+function downloadCurrentInvoicePdf(){
   syncFormFromDOM();
   const f=state.form;
   if(!f.client_name||!f.client_name.trim()){alert('Le nom du client est requis');return;}
   const{sub,vt,tot}=calcTotals(f);
-  await sharePdfWithNativeOrSheet(f,sub,vt,tot,null);
+  downloadInvoicePdf(f,sub,vt,tot);
 }
 
 async function saveAndSendInvoiceByEmail(){
@@ -2202,10 +2100,17 @@ async function saveAndSendInvoiceByEmail(){
   if(isNew&&!canCreateInvoice()){state.showLimitModal=true;state.page='dashboard';render();return;}
   const{sub,vt,tot}=calcTotals(f);
   const payload=buildInvoicePayload(f,sub,vt,tot);
-  await sharePdfWithNativeOrSheet(f,sub,vt,tot,async()=>{
+  try{
+    state.saving=true;render();
     await persistInvoicePayload(payload);
     await loadInvoices();
-  });
+    state.saving=false;
+    downloadInvoicePdf(f,sub,vt,tot);
+    state.page='dashboard';render();
+  }catch(e){
+    console.error(e);state.saving=false;
+    alert('Erreur lors de l\'enregistrement : '+(e.message||e));render();
+  }
 }
 
 /* ---------- INIT ---------- */
