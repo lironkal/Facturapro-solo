@@ -10,6 +10,7 @@
 <script src="https://js.stripe.com/v3/"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -96,7 +97,7 @@ html,body{background:#0b0b0c;color:var(--tx);font-family:'DM Sans',sans-serif;mi
 .btn-save{flex:1;padding:14px;background:linear-gradient(135deg,#d4a94e,#9a6e18);color:#0b0b0c;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:.3s}
 .btn-save:hover{box-shadow:0 6px 28px rgba(201,168,76,.42);transform:translateY(-1px)}
 .btn-save:disabled{opacity:.5;cursor:not-allowed}
-.btn-email{flex:1;padding:14px;background:transparent;color:var(--gold);border:1.5px solid var(--gold);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:.3s}
+.btn-email{flex:1;padding:14px;background:transparent;color:var(--g);border:1.5px solid var(--g);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:.3s}
 .btn-email:hover{background:rgba(212,169,78,.12);box-shadow:0 4px 18px rgba(201,168,76,.25);transform:translateY(-1px)}
 .pricing-wrap{min-height:100vh;background:var(--bg);padding:60px 20px}
 .pricing-inner{max-width:700px;margin:0 auto;text-align:center}
@@ -134,10 +135,6 @@ html,body{background:#0b0b0c;color:var(--tx);font-family:'DM Sans',sans-serif;mi
 .total-line{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ede8de;font-size:13px;color:#3a3028}
 .grand-line{display:flex;justify-content:space-between;padding:13px 0 0;font-family:'Playfair Display',serif;font-size:20px;font-weight:700;border-top:2px solid #1c1810}
 .grand-line span:last-child{color:#c9a84c}
-.qr-box{border:1px solid #e0d8cc;border-radius:7px;padding:20px;display:flex;gap:20px;align-items:flex-start;background:#f2ede4;margin-top:28px;flex-wrap:wrap}
-.qr-title{font-size:9px;letter-spacing:3px;color:#c9a84c;text-transform:uppercase;font-weight:600;margin-bottom:8px}
-.qr-info{font-size:12px;color:#3a3028;line-height:2;flex:1;min-width:160px}
-.qr-notes{font-size:11px;color:#3a3028;line-height:1.8;padding-left:20px;white-space:pre-line;border-left:1px solid #c9b8a4;margin-left:4px;flex:1;min-width:160px}
 .inv-footer{padding:16px 48px;background:#ece7de;text-align:center;font-size:9px;letter-spacing:3px;color:#5a4e48;text-transform:uppercase}
 @media print{.no-print{display:none!important}body{background:white}.invoice-doc{box-shadow:none;border-radius:0}}
 @media (max-width:640px){
@@ -211,40 +208,29 @@ html,body{background:#0b0b0c;color:var(--tx);font-family:'DM Sans',sans-serif;mi
 .lp-hero-section{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:110px 24px 70px;background-color:#0b0b0c;background-image:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(201,168,76,.08),transparent)}
 .lp-hero-h1{font-family:'Playfair Display',serif;font-size:clamp(28px,5vw,56px);font-weight:700;color:var(--tx);line-height:1.15;max-width:780px;margin:0 auto 20px}
 .lp-hero-sub{font-size:17px;color:var(--m2);margin-bottom:32px;max-width:500px;line-height:1.7}
-/* ===== BEFORE/AFTER GRID ===== */
 .before-after-grid{display:grid;grid-template-columns:1fr 60px 1fr;gap:0;align-items:center;max-width:820px;margin:0 auto}
-/* ===== RESPONSIVE ===== */
 @media(max-width:768px){
-  /* NAV */
   .lp-nav{padding:0 14px;height:54px}
   .nav{padding:0 12px;height:52px}
   .nav-actions{gap:5px}
   .btn-sm{font-size:11px;padding:6px 10px}
-  /* HERO */
   .lp-hero-section{padding:80px 16px 50px;min-height:auto}
   .lp-hero-h1{font-size:clamp(26px,7vw,38px)}
   .lp-hero-sub{font-size:15px}
   .lp-btn-primary{width:100%;max-width:320px}
-  /* STRIP */
   .lp-strip{gap:16px;padding:20px 16px;flex-wrap:wrap}
   .lp-strip-item{font-size:13px}
-  /* SECTION */
   .lp-section{padding:48px 16px}
-  /* BEFORE/AFTER */
   .before-after-grid{grid-template-columns:1fr;gap:16px}
   .before-after-grid > div:nth-child(2){display:none}
-  /* STEPS / BENEFITS / TESTI / PRICING */
   .steps-grid{grid-template-columns:1fr}
   .benefits-grid{grid-template-columns:1fr}
   .testimonials-grid{grid-template-columns:1fr}
   .pricing-grid{grid-template-columns:1fr}
   .compare-grid{grid-template-columns:1fr!important}
-  /* CTA BANNER */
   .lp-cta-banner{padding:36px 20px;margin:0 12px 60px}
   .lp-cta-banner h2{font-size:22px}
-  /* FOOTER */
   .lp-footer{padding:20px 16px}
-  /* EDITOR */
   .g3{grid-template-columns:1fr!important}
   .g2{grid-template-columns:1fr!important}
   .editor{padding:14px 10px}
@@ -252,12 +238,9 @@ html,body{background:#0b0b0c;color:var(--tx);font-family:'DM Sans',sans-serif;mi
   .grand{width:100%}
   .actions{flex-direction:column}
   .btn-cancel{text-align:center}
-  /* DASHBOARD */
   .dash{padding:24px 12px}
   .inv-card{padding:12px 14px}
-  /* PRICING PAGE */
   .pricing-inner{padding:0 14px}
-  /* LEGAL MODAL */
   .legal-box{padding:20px 14px}
 }
 @media(max-width:480px){
@@ -268,10 +251,35 @@ html,body{background:#0b0b0c;color:var(--tx);font-family:'DM Sans',sans-serif;mi
   .lp-btn-primary{font-size:14px;padding:14px 24px}
   .lp-nav .btn-outline{display:none}
   .nav-actions .btn-outline{display:none}
-  /* INVOICE ITEMS */
   .items-header{display:none}
   .item-row{grid-template-columns:1fr 56px 80px 28px;font-size:12px;gap:5px}
   .item-total{font-size:12px}
+}
+/* ===== SWISS QR-BILL ===== */
+.qr-bill-incomplete{background:#fef3c7;border:1px solid #fbbf24;color:#92400e;padding:14px 18px;border-radius:8px;font-size:13px;line-height:1.6;margin:20px 0;text-align:center}
+.qr-bill-incomplete button{margin-left:8px}
+.qr-bill{background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;display:flex;width:210mm;max-width:100%;margin:30px auto 0;border-top:1px dashed #999}
+.qr-receipt{width:62mm;min-height:105mm;padding:5mm;border-right:1px dashed #999;font-size:8pt;line-height:1.3;flex-shrink:0;display:flex;flex-direction:column}
+.qr-r-title{font-weight:700;font-size:11pt;margin-bottom:4mm}
+.qr-r-section{margin-bottom:2mm}
+.qr-r-label{font-weight:700;font-size:6pt;line-height:1.1;color:#000}
+.qr-r-value{font-size:8pt;line-height:1.2;margin-top:0.5mm;word-wrap:break-word}
+.qr-r-amount-row{display:flex;gap:4mm;margin-top:auto;padding-top:5mm}
+.qr-r-accept{text-align:right;font-size:6pt;margin-top:5mm;font-weight:700}
+.qr-payment{flex:1;min-height:105mm;padding:5mm;display:flex;gap:5mm;font-size:9pt;line-height:1.3}
+.qr-p-left{width:51mm;flex-shrink:0;display:flex;flex-direction:column}
+.qr-p-title{font-weight:700;font-size:11pt;margin-bottom:4mm}
+.qr-p-qr{width:46mm;height:46mm;margin-bottom:3mm}
+.qr-p-qr svg{width:100%;height:100%;display:block}
+.qr-p-amount-row{display:flex;gap:4mm;margin-top:auto}
+.qr-p-label{font-weight:700;font-size:8pt;line-height:1.1}
+.qr-p-value{font-size:10pt;line-height:1.3;margin-top:0.5mm;word-wrap:break-word}
+.qr-p-right{flex:1;font-size:10pt;line-height:1.3;overflow:hidden}
+.qr-p-section{margin-bottom:2mm}
+.qr-p-section .qr-p-label{font-size:8pt;margin-bottom:0.5mm}
+@media print{
+  @page{size:A4;margin:0}
+  .qr-bill{box-shadow:none;border:none;page-break-inside:avoid;margin:0}
 }
 </style>
 </head>
@@ -281,21 +289,15 @@ html,body{background:#0b0b0c;color:var(--tx);font-family:'DM Sans',sans-serif;mi
 const SUPABASE_URL='https://gvlmipsqwaiymjtzeejw.supabase.co';
 const SUPABASE_KEY='sb_publishable_WPpOH1UEWHoBpzRs9vpkQA_gkAEqhVq';
 const STRIPE_LINK='https://buy.stripe.com/14A8wHfImevTdMvauP1kA00';
-// Lien annuel : 79 CHF/an
 const STRIPE_LINK_ANNUAL='https://buy.stripe.com/cNi7sD3ZE73r9wf1Yj1kA03';
-// 📩 Email de réception des messages de contact
 const CONTACT_EMAIL='Liron.kallaba@gmail.com';
-// 🔧 OPTIONNEL : pour envoyer les messages SANS ouvrir l'app Mail du client.
-// Va sur https://formspree.io → crée un compte gratuit → crée un nouveau form
-// avec l'email Liron.kallaba@gmail.com → copie l'ID (ex: "xyzabcde") et colle-le ici.
-// Tant que c'est vide, le bouton ouvrira l'app Mail du client en pré-remplissant le message.
 const FORMSPREE_ID='mlgapgzj';
 const{createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
-
 let state={
   page:'loading',
   session:null,
+  profile:null,
   invoices:[],
   currentInvoice:null,
   form:null,
@@ -308,38 +310,25 @@ let state={
   lang:'fr',
   showLegal:null
 };
-
 const FREE_MONTHLY_LIMIT=3;
 
 /* ---------- TRANSLATIONS ---------- */
 const LANG={
   fr:{
     login:'Se connecter',signup:'Créer mon compte',logout:'Déconnexion',
-    startFree:'Commencer gratuitement',back:'Retour',backHome:'← Retour à l\'accueil',
+    startFree:'Commencer gratuitement',back:'Retour',backHome:"← Retour à l'accueil",
     email:'Email',password:'Mot de passe',forgotPw:'Mot de passe oublié ?',
     noAccount:'Pas de compte ? Inscris-toi',hasAccount:'Déjà un compte ? Connecte-toi',
-    sending:'Envoi en cours...','sending_link':'Envoyer le lien',loading:'Chargement...',
+    sending:'Envoi en cours...',sending_link:'Envoyer le lien',loading:'Chargement...',
     accountCreated:'Compte créé ! Vérifie ton email pour confirmer.',
-    emailRequired:'Email requis',fieldsRequired:'Email et mot de passe requis',
-    resetTitle:'Réinitialiser',resetSub:'Entre ton email, on t\'envoie un lien pour créer un nouveau mot de passe',
-    resetSent:'✓ Email envoyé ! Vérifie ta boîte de réception.',
-    newPwTitle:'Définir le mot de passe',newPwSub:'Choisis un nouveau mot de passe pour ton compte',
-    newPw:'Nouveau mot de passe (min. 6 caractères)',confirmPw:'Confirme le mot de passe',
-    savePw:'Enregistrer',pwUpdated:'✓ Mot de passe mis à jour !',pwMin:'Mot de passe min. 6 caractères',pwMismatch:'Les mots de passe ne correspondent pas',
-    dashboard:'Tableau de bord',myInvoices:'Mes factures',noInvoices:'Aucune facture pour l\'instant',
+    google:'Continuer avec Google',
+    dashboard:'Tableau de bord',myInvoices:'Mes factures',noInvoices:"Aucune facture pour l'instant",
     newInvoice:'+ Nouvelle facture',createFirst:'Créer ma première facture',plans:'Plans',
     edit:'Éditer',delete:'Supprimer',paid:'Payée',pending:'En attente',
-    deleteConfirm:'Supprimer cette facture ?',
     freePlan:'Plan gratuit',invoicesMonth:'factures ce mois-ci',upgrade:'Passer Solo (9 CHF/mois)',soloPlan:'✨ Plan Solo — Factures illimitées',
     limitTitle:'Limite atteinte',limit3:'Tu as utilisé tes 3 factures gratuites ce mois-ci',
     limitDesc:'🔥 Offre limitée : -50% sur les 3 premiers mois. 4.50 CHF/mois, puis 9 CHF/mois. Factures illimitées, édition et suppression incluses.',
     goSolo:'Passer au plan Solo',later:'Plus tard',
-    invoiceInfo:'Informations',number:'Numéro',date:'Date',dueDate:'Échéance',
-    client:'Client',clientName:'Nom',address:'Adresse',city:'Ville NPA',vat:'N° TVA',
-    services:'Prestations',description:'Description',qty:'Qté',unitPrice:'Prix unit.',totalChf:'Total CHF',addLine:'+ Ajouter une ligne',
-    subtotal:'Sous-total HT',totalTtc:'Total TTC',notes:'Notes et IBAN',
-    cancel:'Annuler',save:'Enregistrer',saving:'Enregistrement...',preview:'Aperçu',
-    printPdf:'Imprimer / PDF',saveError:'Erreur lors de l\'enregistrement : ',clientRequired:'Le nom du client est requis',
     pricingTitle:'Choisis ton plan',pricingDesc:'Simple et transparent. Passe Solo quand tu es prêt.',
     free:'Gratuit',solo:'Solo',perMonth:'CHF / mois',currentPlan:'Plan actuel',
     heroTag:'Facturation Suisse · Le moins cher du marché',
@@ -348,288 +337,40 @@ const LANG={
     badge1:'✓ Sans carte bancaire',badge2:'✓ 3 factures gratuites',badge3:'✓ Annulable à tout moment',
     heroCta:'Commencer gratuitement →',heroNote:'3 factures gratuites pour tester · Sans engagement',
     strip1:'Facture en 30 sec',strip2:'QR facture suisse auto',strip3:'Envoi email direct',strip4:'Données sécurisées CH',
-    compareTag:'Comparaison',compareTitle:'Pourquoi payer 3× plus ?',compareSub:'Les autres outils suisses facturent 25 à 35 CHF/mois pour les mêmes fonctions de base.',compareSave:'Économise jusqu\'à 312 CHF/an',compareMonthly:'/mois',
+    compareTag:'Comparaison',compareTitle:'Pourquoi payer 3× plus ?',compareSub:'Les autres outils suisses facturent 25 à 35 CHF/mois pour les mêmes fonctions de base.',compareSave:"Économise jusqu'à 312 CHF/an",compareMonthly:'/mois',
     beforeTag:'Avant / Après',beforeTitle:'Fini la galère Excel',beforeSub:'Une image vaut mille mots.',beforeLabel:'❌ Avant — Excel',afterLabel:'✅ Après — FacturaPro',sendInvoice:'📧 Envoyer la facture',
     stepsTag:'Simple comme bonjour',stepsTitle:'Comment ça marche ?',stepsSub:'Pas de formation, pas de manuel. Tu factures en 3 étapes.',
     step1Title:'Crée ton compte',step1Desc:'Gratuit, sans carte bancaire. Prêt en 30 secondes.',
     step2Title:'Remplis ta facture',step2Desc:'Nom du client, prestations, TVA suisse calculée automatiquement.',
     step3Title:'Envoie ou imprime',step3Desc:'PDF ou email directement depuis FacturaPro. QR facture incluse.',
-    benefitsTag:'Pourquoi FacturaPro',benefitsTitle:'Arrête de perdre du temps\navec tes factures',benefitsSub:'Conçu pour les indépendants suisses qui veulent facturer vite et être payés plus vite.',
+    benefitsTag:'Pourquoi FacturaPro',benefitsTitle:'Arrête de perdre du temps\\navec tes factures',benefitsSub:'Conçu pour les indépendants suisses qui veulent facturer vite et être payés plus vite.',
     b1Title:'Fini Excel',b1Desc:'Fini les tableaux, les formules cassées, les mises en page qui bougent à chaque impression.',
     b2Title:'QR facture suisse incluse',b2Desc:'Conforme aux normes Swiss QR Bill, générée automatiquement sur chaque facture.',
     b3Title:'Envoi email intégré',b3Desc:'Envoie ta facture directement depuis FacturaPro. Zéro copier-coller, zéro galère.',
     b4Title:'TVA suisse automatique',b4Desc:'8.1%, 3.8%, 2.6% — tu choisis le taux, FacturaPro calcule tout en temps réel.',
     testiTag:'Ils facturent mieux',testiTitle:'Ce que disent nos utilisateurs',testiSub:'Des indépendants suisses qui ont repris le contrôle de leur facturation.',
-    t1:'"En tant qu\'indépendant, je perdais 2h par semaine sur mes factures. Maintenant c\'est 5 minutes."',t1a:'Marc T.',t1b:'Consultant IT · Lausanne',
-    t2:'"La QR facture est incluse automatiquement. Mes clients paient beaucoup plus vite depuis que je l\'utilise."',t2a:'Sophie R.',t2b:'Graphiste · Genève',
-    t3:'"9 CHF par mois c\'est rien comparé au temps que je gagne. J\'aurais dû passer à FacturaPro bien plus tôt."',t3a:'Luca M.',t3b:'Artisan · Zurich',
-    pricTag:'Tarification',pricTitle:'Simple et transparent',pricSub:'Commence gratuitement. Passe Solo quand tu es prêt. Moins cher qu\'une heure de comptable.',
+    t1:'"En tant qu\\'indépendant, je perdais 2h par semaine sur mes factures. Maintenant c\\'est 5 minutes."',t1a:'Marc T.',t1b:'Consultant IT · Lausanne',
+    t2:'"La QR facture est incluse automatiquement. Mes clients paient beaucoup plus vite depuis que je l\\'utilise."',t2a:'Sophie R.',t2b:'Graphiste · Genève',
+    t3:'"9 CHF par mois c\\'est rien comparé au temps que je gagne. J\\'aurais dû passer à FacturaPro bien plus tôt."',t3a:'Luca M.',t3b:'Artisan · Zurich',
+    pricTag:'Tarification',pricTitle:'Simple et transparent',pricSub:"Commence gratuitement. Passe Solo quand tu es prêt. Moins cher qu'une heure de comptable.",
     faqTag:'Questions fréquentes',faqTitle:'Tout ce que tu veux savoir',
     faq1q:'Est-ce vraiment gratuit ?',faq1a:'Oui, 3 factures par mois sans carte bancaire, sans engagement. Aucune surprise.',
     faq2q:'Puis-je annuler à tout moment ?',faq2a:'Oui. Le plan Solo est sans engagement. Tu annules en un clic, quand tu veux.',
     faq3q:'La QR facture est-elle conforme ?',faq3a:'Oui, elle respecte la norme Swiss QR Bill officielle, acceptée par toutes les banques suisses.',
     faq4q:'Mes données sont-elles sécurisées ?',faq4a:'Oui. Serveurs hébergés en Europe, chiffrement SSL, accès protégé par authentification.',
     faq5q:'Comment passer au plan Solo ?',faq5a:'Un clic depuis ton tableau de bord. Le paiement est sécurisé via Stripe.',
-    ctaTitle:'Prêt à facturer en 30 secondes ?',ctaDesc:'Rejoins les indépendants suisses qui ont arrêté de perdre du temps avec leurs factures.',
+    ctaTitle:'Prêt à facturer en 30 secondes ?',ctaDesc:"Rejoins les indépendants suisses qui ont arrêté de perdre du temps avec leurs factures.",
     ctaBtn:'Créer mon compte gratuit →',ctaSub:'Sans carte bancaire · 3 factures gratuites · Annulable à tout moment',
     footerBy:'Site créé par',footerAgency:'Agencyone',footerAgencyDesc:'Agence de création & marketing',
-    google:'Continuer avec Google',forgotPwLabel:'Mot de passe oublié',
     planFeatFree:['3 factures par mois','Création uniquement (édition et suppression en plan Solo)','Export PDF','TVA suisse intégrée','Stockage sécurisé'],
     planFeatSolo:['Factures illimitées','Modifier et supprimer tes factures','Relances de paiement auto (bientôt)','Export PDF premium','QR-facture Suisse native','Support prioritaire'],
     annualLabel:'Annuel',monthlyLabel:'Mensuel',annualPrice:'79',annualPerYear:'CHF / an',annualEquiv:'soit 6.58 CHF/mois',annualSave:'Économise 29 CHF',payAnnual:'Payer annuellement',
     beforeItems:['😤 2h perdues','🐛 Formules cassées','😵 Mise en page qui part'],
     afterItems:['⚡ 30 secondes chrono','✓ TVA calculée auto','✓ QR facture incluse'],
-    cguLink:'Conditions générales',mentionsLink:'Mentions légales',
-    cguTitle:'Conditions Générales d\'Utilisation',
-    cguContent:`<h3>1. Objet du service</h3>
-<p>FacturaPro est un service de facturation en ligne destiné aux indépendants, freelances, artisans et PME établis en Suisse. Il permet la création, la gestion et l'envoi de factures conformes aux normes suisses.</p>
-<h3>2. Accès et utilisation</h3>
-<p>L'accès au service est proposé en version gratuite (3 factures/mois) ou en abonnement Solo (9 CHF/mois, factures illimitées). L'utilisateur s'engage à utiliser le service de manière licite et à ne pas porter atteinte aux droits des tiers.</p>
-<h3>3. Compte utilisateur</h3>
-<p>L'utilisateur est responsable de la confidentialité de ses identifiants. Toute activité réalisée depuis son compte lui est imputable. Il peut supprimer son compte à tout moment via les paramètres.</p>
-<h3>4. Protection des données (LPD)</h3>
-<p>Conformément à la Loi fédérale sur la protection des données (LPD, RS 235.1), les données personnelles collectées (nom, adresse e-mail, données de facturation) sont traitées de manière confidentielle et exclusivement aux fins du service. Elles ne sont pas transmises à des tiers sans consentement, sauf obligation légale. L'utilisateur dispose d'un droit d'accès, de rectification et de suppression de ses données en contactant contact@facturapro.ch.</p>
-<h3>5. Paiement et abonnement</h3>
-<p>L'abonnement Solo est facturé mensuellement via Stripe. Il peut être résilié à tout moment, sans préavis, depuis le tableau de bord. Aucun remboursement n'est effectué pour les périodes entamées.</p>
-<h3>6. Responsabilité</h3>
-<p>FacturaPro met tout en œuvre pour assurer la disponibilité et la fiabilité du service. Toutefois, aucune garantie absolue ne peut être donnée quant à l'absence d'interruptions ou d'erreurs. L'utilisateur est seul responsable du contenu de ses factures et de leur conformité aux obligations légales et fiscales applicables.</p>
-<h3>7. Propriété intellectuelle</h3>
-<p>L'ensemble des éléments composant FacturaPro (logo, design, code) est protégé par le droit suisse de la propriété intellectuelle. Toute reproduction ou exploitation sans autorisation est interdite.</p>
-<h3>8. Modification des CGU</h3>
-<p>FacturaPro se réserve le droit de modifier les présentes CGU à tout moment. Les utilisateurs seront informés par e-mail en cas de modification substantielle.</p>
-<h3>9. Droit applicable et for judiciaire</h3>
-<p>Les présentes CGU sont soumises au droit suisse, en particulier au Code des Obligations (CO, RS 220). Tout litige relatif à l'interprétation ou à l'exécution des présentes sera soumis à la juridiction exclusive des tribunaux suisses compétents.</p>`,
-    mentionsTitle:'Mentions Légales',
-    mentionsContent:`<h3>Éditeur du site</h3>
-<p><strong>FacturaPro</strong><br>Service de facturation en ligne<br>Suisse<br>E-mail : contact@facturapro.ch</p>
-<h3>Responsable de la publication</h3>
-<p>Le responsable de la publication est le propriétaire du service FacturaPro.</p>
-<h3>Hébergement</h3>
-<p><strong>Vercel Inc.</strong><br>340 S Lemon Ave #4133<br>Walnut, CA 91789, USA<br>vercel.com</p>
-<p><strong>Base de données :</strong> Supabase (serveurs hébergés en Union Européenne)</p>
-<h3>Protection des données</h3>
-<p>Conformément à la Loi fédérale suisse sur la protection des données (LPD, RS 235.1), vous disposez d'un droit d'accès, de rectification et de suppression de vos données personnelles. Pour exercer ces droits : contact@facturapro.ch</p>
-<h3>Cookies</h3>
-<p>Ce site utilise uniquement des cookies techniques nécessaires au fonctionnement du service (authentification). Aucun cookie publicitaire ou de tracking tiers n'est utilisé.</p>
-<h3>Propriété intellectuelle</h3>
-<p>Le contenu de ce site (textes, visuels, code) est protégé par le droit suisse de la propriété intellectuelle. Toute reproduction sans autorisation préalable est interdite.</p>
-<h3>Droit applicable</h3>
-<p>Le présent site et ses conditions d'utilisation sont soumis au droit suisse. Le for judiciaire est en Suisse.</p>
-<h3>Conception et développement</h3>
-<p>Site créé par <strong>Agencyone</strong> — Agence de création & marketing</p>`,
-  },
-  de:{
-    login:'Anmelden',signup:'Konto erstellen',logout:'Abmelden',
-    startFree:'Kostenlos starten',back:'Zurück',backHome:'← Zur Startseite',
-    email:'E-Mail',password:'Passwort',forgotPw:'Passwort vergessen?',
-    noAccount:'Kein Konto? Registrieren',hasAccount:'Bereits ein Konto? Anmelden',
-    sending:'Wird gesendet...','sending_link':'Link senden',loading:'Laden...',
-    accountCreated:'Konto erstellt! Bitte E-Mail bestätigen.',
-    emailRequired:'E-Mail erforderlich',fieldsRequired:'E-Mail und Passwort erforderlich',
-    resetTitle:'Zurücksetzen',resetSub:'Gib deine E-Mail ein, wir schicken dir einen Link.',
-    resetSent:'✓ E-Mail gesendet! Posteingang prüfen.',
-    newPwTitle:'Neues Passwort',newPwSub:'Wähle ein neues Passwort für dein Konto',
-    newPw:'Neues Passwort (min. 6 Zeichen)',confirmPw:'Passwort bestätigen',
-    savePw:'Speichern',pwUpdated:'✓ Passwort aktualisiert!',pwMin:'Passwort min. 6 Zeichen',pwMismatch:'Passwörter stimmen nicht überein',
-    dashboard:'Dashboard',myInvoices:'Meine Rechnungen',noInvoices:'Noch keine Rechnungen',
-    newInvoice:'+ Neue Rechnung',createFirst:'Erste Rechnung erstellen',plans:'Pläne',
-    edit:'Bearbeiten',delete:'Löschen',paid:'Bezahlt',pending:'Ausstehend',
-    deleteConfirm:'Diese Rechnung löschen?',
-    freePlan:'Kostenloser Plan',invoicesMonth:'Rechnungen diesen Monat',upgrade:'Zu Solo wechseln (9 CHF/Mt.)',soloPlan:'✨ Solo-Plan — Unbegrenzte Rechnungen',
-    limitTitle:'Limit erreicht',limit3:'Du hast deine 3 kostenlosen Rechnungen diesen Monat aufgebraucht',
-    limitDesc:'🔥 Begrenztes Angebot: -50% in den ersten 3 Monaten. 4.50 CHF/Monat, dann 9 CHF/Monat. Unbegrenzte Rechnungen, Bearbeitung und Löschung inklusive.',
-    goSolo:'Zum Solo-Plan wechseln',later:'Später',
-    invoiceInfo:'Informationen',number:'Nummer',date:'Datum',dueDate:'Fälligkeitsdatum',
-    client:'Kunde',clientName:'Name',address:'Adresse',city:'PLZ Ort',vat:'MwSt.-Nr.',
-    services:'Leistungen',description:'Beschreibung',qty:'Menge',unitPrice:'Einzelpreis',totalChf:'Total CHF',addLine:'+ Zeile hinzufügen',
-    subtotal:'Zwischensumme netto',totalTtc:'Total inkl. MwSt.',notes:'Notizen und IBAN',
-    cancel:'Abbrechen',save:'Speichern',saving:'Wird gespeichert...',preview:'Vorschau',
-    printPdf:'Drucken / PDF',saveError:'Fehler beim Speichern: ',clientRequired:'Kundenname erforderlich',
-    pricingTitle:'Plan wählen',pricingDesc:'Einfach und transparent.',
-    free:'Kostenlos',solo:'Solo',perMonth:'CHF / Monat',currentPlan:'Aktueller Plan',
-    heroTag:'Schweizer Rechnungsstellung · Am günstigsten',
-    heroH1:'Die <span style="color:var(--g)">günstigste</span> Schweizer Rechnungssoftware, ohne Kompromisse',
-    heroSub:'Ab 6.58 CHF/Monat. Swiss QR-Rechnung nativ. MwSt. automatisch. 100% Schweizer.',
-    badge1:'✓ Ohne Kreditkarte',badge2:'✓ 3 kostenlose Rechnungen',badge3:'✓ Jederzeit kündbar',
-    heroCta:'Kostenlos starten →',heroNote:'3 kostenlose Rechnungen zum Testen · Keine Verpflichtung',
-    strip1:'Rechnung in 30 Sek.',strip2:'Schweizer QR-Rechnung auto',strip3:'Direkter E-Mail-Versand',strip4:'Sichere Daten CH',
-    compareTag:'Vergleich',compareTitle:'Warum 3× mehr zahlen?',compareSub:'Andere Schweizer Tools verlangen 25 bis 35 CHF/Monat für dieselben Grundfunktionen.',compareSave:'Spare bis zu 312 CHF/Jahr',compareMonthly:'/Monat',
-    beforeTag:'Vorher / Nachher',beforeTitle:'Schluss mit Excel-Chaos',beforeSub:'Ein Bild sagt mehr als tausend Worte.',beforeLabel:'❌ Vorher — Excel',afterLabel:'✅ Nachher — FacturaPro',sendInvoice:'📧 Rechnung senden',
-    stepsTag:'Ganz einfach',stepsTitle:'Wie funktioniert es?',stepsSub:'Keine Schulung, kein Handbuch. In 3 Schritten zur Rechnung.',
-    step1Title:'Konto erstellen',step1Desc:'Kostenlos, ohne Kreditkarte. In 30 Sekunden bereit.',
-    step2Title:'Rechnung ausfüllen',step2Desc:'Kunde, Leistungen, Schweizer MwSt. automatisch berechnet.',
-    step3Title:'Senden oder drucken',step3Desc:'PDF oder E-Mail direkt aus FacturaPro. QR-Rechnung inklusive.',
-    benefitsTag:'Warum FacturaPro',benefitsTitle:'Hör auf, Zeit mit\ndeinen Rechnungen zu verlieren',benefitsSub:'Entwickelt für Schweizer Selbstständige, die schnell fakturieren und schneller bezahlt werden wollen.',
-    b1Title:'Kein Excel mehr',b1Desc:'Keine Tabellen, keine defekten Formeln, kein Layout das sich verschiebt.',
-    b2Title:'Schweizer QR-Rechnung inklusive',b2Desc:'Konforme Swiss QR Bill, automatisch auf jeder Rechnung generiert.',
-    b3Title:'E-Mail-Versand integriert',b3Desc:'Sende deine Rechnung direkt aus FacturaPro. Null Copy-Paste.',
-    b4Title:'MwSt. automatisch',b4Desc:'8.1%, 3.8%, 2.6% — du wählst den Satz, FacturaPro berechnet alles.',
-    testiTag:'Ihre Erfahrungen',testiTitle:'Was unsere Nutzer sagen',testiSub:'Schweizer Selbstständige, die ihre Rechnungsstellung wieder im Griff haben.',
-    t1:'"Als Selbstständiger verlor ich 2h pro Woche mit Rechnungen. Jetzt sind es 5 Minuten."',t1a:'Marc T.',t1b:'IT-Berater · Lausanne',
-    t2:'"Die QR-Rechnung ist automatisch dabei. Meine Kunden zahlen viel schneller."',t2a:'Sophie R.',t2b:'Grafikerin · Genf',
-    t3:'"9 CHF pro Monat ist nichts im Vergleich zur Zeit, die ich spare."',t3a:'Luca M.',t3b:'Handwerker · Zürich',
-    pricTag:'Preise',pricTitle:'Einfach und transparent',pricSub:'Kostenlos starten. Zu Solo wechseln wenn bereit. Günstiger als eine Stunde Buchhalter.',
-    faqTag:'Häufige Fragen',faqTitle:'Alles was du wissen möchtest',
-    faq1q:'Ist es wirklich kostenlos?',faq1a:'Ja, 3 Rechnungen pro Monat ohne Kreditkarte, ohne Verpflichtung.',
-    faq2q:'Kann ich jederzeit kündigen?',faq2a:'Ja. Der Solo-Plan ist ohne Verpflichtung. Kündigung mit einem Klick.',
-    faq3q:'Ist die QR-Rechnung konform?',faq3a:'Ja, sie entspricht dem offiziellen Swiss QR Bill Standard, akzeptiert von allen Schweizer Banken.',
-    faq4q:'Sind meine Daten sicher?',faq4a:'Ja. Server in Europa, SSL-Verschlüsselung, geschützter Zugang.',
-    faq5q:'Wie wechsle ich zum Solo-Plan?',faq5a:'Ein Klick aus deinem Dashboard. Zahlung sicher über Stripe.',
-    ctaTitle:'Bereit in 30 Sekunden zu fakturieren?',ctaDesc:'Schliesse dich Schweizer Selbstständigen an, die aufgehört haben, Zeit mit Rechnungen zu verlieren.',
-    ctaBtn:'Kostenloses Konto erstellen →',ctaSub:'Ohne Kreditkarte · 3 kostenlose Rechnungen · Jederzeit kündbar',
-    footerBy:'Website erstellt von',footerAgency:'Agencyone',footerAgencyDesc:'Agentur für Kreation & Marketing',
-    google:'Mit Google fortfahren',forgotPwLabel:'Passwort zurücksetzen',
-    planFeatFree:['3 Rechnungen pro Monat','Nur Erstellung (Bearbeiten & Löschen im Solo-Plan)','PDF-Export','Schweizer MwSt. integriert','Sicherer Speicher'],
-    planFeatSolo:['Unbegrenzte Rechnungen','Rechnungen bearbeiten und löschen','Automatische Zahlungserinnerungen (bald)','Premium PDF-Export','Schweizer QR-Rechnung nativ','Prioritätssupport'],
-    annualLabel:'Jährlich',monthlyLabel:'Monatlich',annualPrice:'79',annualPerYear:'CHF / Jahr',annualEquiv:'das sind 6.58 CHF/Monat',annualSave:'Spare 29 CHF',payAnnual:'Jährlich zahlen',
-    beforeItems:['😤 2h verloren','🐛 Defekte Formeln','😵 Layout verschoben'],
-    afterItems:['⚡ 30 Sekunden','✓ MwSt. automatisch','✓ QR-Rechnung dabei'],
-    cguLink:'AGB',mentionsLink:'Impressum',
-    cguTitle:'Allgemeine Geschäftsbedingungen (AGB)',
-    cguContent:`<h3>1. Gegenstand des Dienstes</h3>
-<p>FacturaPro ist ein Online-Rechnungsstellungsdienst für Selbstständige, Freelancer, Handwerker und KMU mit Sitz in der Schweiz. Er ermöglicht die Erstellung, Verwaltung und den Versand von Rechnungen gemäss den Schweizer Normen.</p>
-<h3>2. Zugang und Nutzung</h3>
-<p>Der Dienst wird in einer kostenlosen Version (3 Rechnungen/Monat) oder als Solo-Abonnement (9 CHF/Monat, unbegrenzte Rechnungen) angeboten. Der Nutzer verpflichtet sich, den Dienst rechtmässig zu nutzen und die Rechte Dritter nicht zu verletzen.</p>
-<h3>3. Benutzerkonto</h3>
-<p>Der Nutzer ist für die Vertraulichkeit seiner Zugangsdaten verantwortlich. Alle Aktivitäten über sein Konto werden ihm zugerechnet. Er kann sein Konto jederzeit über die Einstellungen löschen.</p>
-<h3>4. Datenschutz (DSG)</h3>
-<p>Gemäss dem Bundesgesetz über den Datenschutz (DSG, SR 235.1) werden die erhobenen personenbezogenen Daten (Name, E-Mail-Adresse, Rechnungsdaten) vertraulich und ausschliesslich für den Dienst verarbeitet. Sie werden ohne Einwilligung nicht an Dritte weitergegeben, ausser bei gesetzlicher Verpflichtung. Der Nutzer hat das Recht auf Auskunft, Berichtigung und Löschung seiner Daten unter contact@facturapro.ch.</p>
-<h3>5. Zahlung und Abonnement</h3>
-<p>Das Solo-Abonnement wird monatlich über Stripe abgerechnet. Es kann jederzeit ohne Kündigungsfrist über das Dashboard gekündigt werden. Für bereits laufende Perioden erfolgt keine Rückerstattung.</p>
-<h3>6. Haftung</h3>
-<p>FacturaPro bemüht sich um die Verfügbarkeit und Zuverlässigkeit des Dienstes. Eine absolute Garantie für unterbrechungsfreien Betrieb kann jedoch nicht gegeben werden. Der Nutzer ist allein verantwortlich für den Inhalt seiner Rechnungen und deren Konformität mit den geltenden rechtlichen und steuerlichen Verpflichtungen.</p>
-<h3>7. Geistiges Eigentum</h3>
-<p>Alle Elemente von FacturaPro (Logo, Design, Code) sind durch das schweizerische Immaterialgüterrecht geschützt. Jede Reproduktion oder Verwertung ohne Genehmigung ist untersagt.</p>
-<h3>8. Änderung der AGB</h3>
-<p>FacturaPro behält sich das Recht vor, diese AGB jederzeit zu ändern. Bei wesentlichen Änderungen werden die Nutzer per E-Mail informiert.</p>
-<h3>9. Anwendbares Recht und Gerichtsstand</h3>
-<p>Diese AGB unterliegen dem schweizerischen Recht, insbesondere dem Obligationenrecht (OR, SR 220). Alle Streitigkeiten über die Auslegung oder Erfüllung dieser AGB werden den zuständigen Schweizer Gerichten unterbreitet.</p>`,
-    mentionsTitle:'Impressum',
-    mentionsContent:`<h3>Herausgeber der Website</h3>
-<p><strong>FacturaPro</strong><br>Online-Rechnungsstellungsdienst<br>Schweiz<br>E-Mail: contact@facturapro.ch</p>
-<h3>Verantwortlicher für die Veröffentlichung</h3>
-<p>Verantwortlich für die Veröffentlichung ist der Eigentümer des Dienstes FacturaPro.</p>
-<h3>Hosting</h3>
-<p><strong>Vercel Inc.</strong><br>340 S Lemon Ave #4133<br>Walnut, CA 91789, USA<br>vercel.com</p>
-<p><strong>Datenbank:</strong> Supabase (Server in der Europäischen Union)</p>
-<h3>Datenschutz</h3>
-<p>Gemäss dem Bundesgesetz über den Datenschutz (DSG, SR 235.1) haben Sie das Recht auf Auskunft, Berichtigung und Löschung Ihrer personenbezogenen Daten. Zur Ausübung dieser Rechte: contact@facturapro.ch</p>
-<h3>Cookies</h3>
-<p>Diese Website verwendet ausschliesslich technische Cookies, die für den Betrieb des Dienstes notwendig sind (Authentifizierung). Es werden keine Werbe- oder Tracking-Cookies von Drittanbietern verwendet.</p>
-<h3>Geistiges Eigentum</h3>
-<p>Der Inhalt dieser Website (Texte, Grafiken, Code) ist durch das schweizerische Immaterialgüterrecht geschützt. Jede Reproduktion ohne vorherige Genehmigung ist untersagt.</p>
-<h3>Anwendbares Recht</h3>
-<p>Diese Website und ihre Nutzungsbedingungen unterliegen dem schweizerischen Recht. Gerichtsstand ist die Schweiz.</p>
-<h3>Konzeption und Entwicklung</h3>
-<p>Website erstellt von <strong>Agencyone</strong> — Agentur für Kreation &amp; Marketing</p>`,
-  },
-  en:{
-    login:'Sign in',signup:'Create account',logout:'Sign out',
-    startFree:'Start for free',back:'Back',backHome:'← Back to home',
-    email:'Email',password:'Password',forgotPw:'Forgot password?',
-    noAccount:'No account? Sign up',hasAccount:'Already have an account? Sign in',
-    sending:'Sending...','sending_link':'Send link',loading:'Loading...',
-    accountCreated:'Account created! Check your email to confirm.',
-    emailRequired:'Email required',fieldsRequired:'Email and password required',
-    resetTitle:'Reset password',resetSub:'Enter your email and we\'ll send you a reset link.',
-    resetSent:'✓ Email sent! Check your inbox.',
-    newPwTitle:'Set new password',newPwSub:'Choose a new password for your account',
-    newPw:'New password (min. 6 characters)',confirmPw:'Confirm password',
-    savePw:'Save',pwUpdated:'✓ Password updated!',pwMin:'Password min. 6 characters',pwMismatch:'Passwords do not match',
-    dashboard:'Dashboard',myInvoices:'My invoices',noInvoices:'No invoices yet',
-    newInvoice:'+ New invoice',createFirst:'Create my first invoice',plans:'Plans',
-    edit:'Edit',delete:'Delete',paid:'Paid',pending:'Pending',
-    deleteConfirm:'Delete this invoice?',
-    freePlan:'Free plan',invoicesMonth:'invoices this month',upgrade:'Go Solo (9 CHF/mo)',soloPlan:'✨ Solo Plan — Unlimited invoices',
-    limitTitle:'Limit reached',limit3:'You\'ve used your 3 free invoices this month',
-    limitDesc:'🔥 Limited offer: -50% for the first 3 months. 4.50 CHF/mo, then 9 CHF/mo. Unlimited invoices, editing and deletion included.',
-    goSolo:'Upgrade to Solo',later:'Later',
-    invoiceInfo:'Details',number:'Number',date:'Date',dueDate:'Due date',
-    client:'Client',clientName:'Name',address:'Address',city:'City / ZIP',vat:'VAT No.',
-    services:'Services',description:'Description',qty:'Qty',unitPrice:'Unit price',totalChf:'Total CHF',addLine:'+ Add line',
-    subtotal:'Subtotal (excl. VAT)',totalTtc:'Total (incl. VAT)',notes:'Notes & IBAN',
-    cancel:'Cancel',save:'Save',saving:'Saving...',preview:'Preview',
-    printPdf:'Print / PDF',saveError:'Error saving: ',clientRequired:'Client name is required',
-    pricingTitle:'Choose your plan',pricingDesc:'Simple and transparent.',
-    free:'Free',solo:'Solo',perMonth:'CHF / month',currentPlan:'Current plan',
-    heroTag:'Swiss Invoicing · Cheapest on the market',
-    heroH1:'The <span style="color:var(--g)">cheapest</span> Swiss invoicing software, no compromises',
-    heroSub:'From 6.58 CHF/month. Native Swiss QR-bill. VAT automatic. 100% Swiss.',
-    badge1:'✓ No credit card',badge2:'✓ 3 free invoices',badge3:'✓ Cancel anytime',
-    heroCta:'Start for free →',heroNote:'3 free invoices to try · No commitment',
-    strip1:'Invoice in 30 sec',strip2:'Swiss QR invoice auto',strip3:'Direct email sending',strip4:'Secure data CH',
-    compareTag:'Comparison',compareTitle:'Why pay 3× more?',compareSub:'Other Swiss tools charge 25 to 35 CHF/month for the same core features.',compareSave:'Save up to 312 CHF/year',compareMonthly:'/mo',
-    beforeTag:'Before / After',beforeTitle:'No more Excel chaos',beforeSub:'A picture is worth a thousand words.',beforeLabel:'❌ Before — Excel',afterLabel:'✅ After — FacturaPro',sendInvoice:'📧 Send invoice',
-    stepsTag:'Dead simple',stepsTitle:'How does it work?',stepsSub:'No training, no manual. Invoice in 3 steps.',
-    step1Title:'Create your account',step1Desc:'Free, no credit card. Ready in 30 seconds.',
-    step2Title:'Fill in your invoice',step2Desc:'Client name, services, Swiss VAT calculated automatically.',
-    step3Title:'Send or print',step3Desc:'PDF or email directly from FacturaPro. QR invoice included.',
-    benefitsTag:'Why FacturaPro',benefitsTitle:'Stop wasting time\non your invoices',benefitsSub:'Built for Swiss freelancers who want to invoice fast and get paid faster.',
-    b1Title:'No more Excel',b1Desc:'No more spreadsheets, broken formulas, or layouts that shift on every print.',
-    b2Title:'Swiss QR invoice included',b2Desc:'Swiss QR Bill compliant, generated automatically on every invoice.',
-    b3Title:'Email sending built-in',b3Desc:'Send your invoice directly from FacturaPro. Zero copy-paste.',
-    b4Title:'Automatic VAT',b4Desc:'8.1%, 3.8%, 2.6% — you pick the rate, FacturaPro calculates everything.',
-    testiTag:'Happy users',testiTitle:'What our users say',testiSub:'Swiss freelancers who took back control of their invoicing.',
-    t1:'"As a freelancer, I used to lose 2h a week on invoices. Now it\'s 5 minutes."',t1a:'Marc T.',t1b:'IT Consultant · Lausanne',
-    t2:'"The QR invoice is included automatically. My clients pay much faster now."',t2a:'Sophie R.',t2b:'Graphic Designer · Geneva',
-    t3:'"9 CHF a month is nothing compared to the time I save."',t3a:'Luca M.',t3b:'Craftsman · Zurich',
-    pricTag:'Pricing',pricTitle:'Simple and transparent',pricSub:'Start free. Go Solo when ready. Less than one hour with an accountant.',
-    faqTag:'FAQ',faqTitle:'Everything you need to know',
-    faq1q:'Is it really free?',faq1a:'Yes, 3 invoices per month with no credit card and no commitment.',
-    faq2q:'Can I cancel anytime?',faq2a:'Yes. The Solo plan has no commitment. Cancel with one click, anytime.',
-    faq3q:'Is the QR invoice compliant?',faq3a:'Yes, it follows the official Swiss QR Bill standard, accepted by all Swiss banks.',
-    faq4q:'Is my data secure?',faq4a:'Yes. Servers in Europe, SSL encryption, protected access.',
-    faq5q:'How do I upgrade to Solo?',faq5a:'One click from your dashboard. Payment securely handled by Stripe.',
-    ctaTitle:'Ready to invoice in 30 seconds?',ctaDesc:'Join Swiss freelancers who stopped wasting time on invoices.',
-    ctaBtn:'Create my free account →',ctaSub:'No credit card · 3 free invoices · Cancel anytime',
-    footerBy:'Website created by',footerAgency:'Agencyone',footerAgencyDesc:'Creative & marketing agency',
-    google:'Continue with Google',forgotPwLabel:'Forgot password',
-    planFeatFree:['3 invoices per month','Creation only (edit & delete in Solo plan)','PDF export','Swiss VAT built-in','Secure storage'],
-    planFeatSolo:['Unlimited invoices','Edit and delete your invoices','Automatic payment reminders (soon)','Premium PDF export','Native Swiss QR invoice','Priority support'],
-    annualLabel:'Annual',monthlyLabel:'Monthly',annualPrice:'79',annualPerYear:'CHF / year',annualEquiv:'equals 6.58 CHF/month',annualSave:'Save 29 CHF',payAnnual:'Pay annually',
-    beforeItems:['😤 2h wasted','🐛 Broken formulas','😵 Layout shifts'],
-    afterItems:['⚡ 30 seconds','✓ VAT auto-calculated','✓ QR invoice included'],
-    cguLink:'Terms of Service',mentionsLink:'Legal Notice',
-    cguTitle:'Terms of Service',
-    cguContent:`<h3>1. Service Description</h3>
-<p>FacturaPro is an online invoicing service for freelancers, independent contractors, artisans, and SMEs based in Switzerland. It enables the creation, management, and sending of invoices compliant with Swiss standards.</p>
-<h3>2. Access and Use</h3>
-<p>The service is available in a free version (3 invoices/month) or as a Solo subscription (9 CHF/month, unlimited invoices). Users agree to use the service lawfully and not to infringe on the rights of third parties.</p>
-<h3>3. User Account</h3>
-<p>Users are responsible for maintaining the confidentiality of their login credentials. All activity carried out through an account is attributable to the account holder. Users may delete their account at any time via the settings.</p>
-<h3>4. Data Protection (FADP)</h3>
-<p>In accordance with the Swiss Federal Act on Data Protection (FADP, SR 235.1), collected personal data (name, email address, invoicing data) is processed confidentially and solely for the purposes of the service. It is not shared with third parties without consent, except where required by law. Users have the right to access, correct, and delete their data by contacting contact@facturapro.ch.</p>
-<h3>5. Payment and Subscription</h3>
-<p>The Solo subscription is billed monthly via Stripe. It can be cancelled at any time, without notice, from the dashboard. No refunds are issued for partially used periods.</p>
-<h3>6. Liability</h3>
-<p>FacturaPro makes every effort to ensure the availability and reliability of the service. However, no absolute guarantee can be given against interruptions or errors. Users are solely responsible for the content of their invoices and their compliance with applicable legal and tax obligations.</p>
-<h3>7. Intellectual Property</h3>
-<p>All elements of FacturaPro (logo, design, code) are protected by Swiss intellectual property law. Any reproduction or use without authorization is prohibited.</p>
-<h3>8. Changes to Terms</h3>
-<p>FacturaPro reserves the right to modify these Terms at any time. Users will be notified by email of any material changes.</p>
-<h3>9. Governing Law and Jurisdiction</h3>
-<p>These Terms are governed by Swiss law, in particular the Code of Obligations (CO, SR 220). Any disputes relating to the interpretation or performance of these Terms shall be submitted to the exclusive jurisdiction of the competent Swiss courts.</p>`,
-    mentionsTitle:'Legal Notice',
-    mentionsContent:`<h3>Publisher</h3>
-<p><strong>FacturaPro</strong><br>Online invoicing service<br>Switzerland<br>Email: contact@facturapro.ch</p>
-<h3>Publication Director</h3>
-<p>The publication director is the owner of the FacturaPro service.</p>
-<h3>Hosting</h3>
-<p><strong>Vercel Inc.</strong><br>340 S Lemon Ave #4133<br>Walnut, CA 91789, USA<br>vercel.com</p>
-<p><strong>Database:</strong> Supabase (servers hosted in the European Union)</p>
-<h3>Data Protection</h3>
-<p>In accordance with the Swiss Federal Act on Data Protection (FADP, SR 235.1), you have the right to access, correct, and delete your personal data. To exercise these rights: contact@facturapro.ch</p>
-<h3>Cookies</h3>
-<p>This website uses only technically necessary cookies required for the service to function (authentication). No advertising or third-party tracking cookies are used.</p>
-<h3>Intellectual Property</h3>
-<p>The content of this website (text, visuals, code) is protected by Swiss intellectual property law. Any reproduction without prior authorization is prohibited.</p>
-<h3>Governing Law</h3>
-<p>This website and its terms of use are governed by Swiss law. Jurisdiction is in Switzerland.</p>
-<h3>Design and Development</h3>
-<p>Website created by <strong>Agencyone</strong> — Creative &amp; marketing agency</p>`,
+    cguLink:'Conditions générales',mentionsLink:'Mentions légales'
   }
 };
-function T(key){return(LANG[state.lang]||LANG.fr)[key]||(LANG.fr)[key]||key;}
+function T(key){return (LANG[state.lang]||LANG.fr)[key]||LANG.fr[key]||key;}
 
 /* ---------- UTILS ---------- */
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
@@ -650,12 +391,150 @@ function calcTotals(f){
   const vt=sub*Number(f.vat_rate||0)/100;
   return{sub,vt,tot:sub+vt};
 }
+function fmtDate(d){
+  try{return new Date(d+'T12:00:00').toLocaleDateString('fr-CH',{day:'2-digit',month:'long',year:'numeric'});}
+  catch(e){return d;}
+}
+
+/* ============================================================
+   SWISS QR-BILL (QR-IBAN, référence QRR 27 chiffres)
+   ============================================================ */
+function calcMod10(digits){
+  const T=[0,9,4,6,8,2,7,1,3,5];
+  let carry=0;
+  for(let i=0;i<digits.length;i++){
+    carry=T[(carry+parseInt(digits[i],10))%10];
+  }
+  return (10-carry)%10;
+}
+function buildQRR(invoiceNumber){
+  const digits=String(invoiceNumber||'').replace(/\D/g,'').padStart(26,'0').slice(-26);
+  return digits+calcMod10(digits);
+}
+function formatQRR(ref){
+  const r=String(ref||'').replace(/\s/g,'');
+  return r.replace(/^(\d{2})(\d{5})(\d{5})(\d{5})(\d{5})(\d{5})$/,'$1 $2 $3 $4 $5 $6');
+}
+function formatIBAN(iban){
+  return String(iban||'').replace(/\s/g,'').toUpperCase().replace(/(.{4})/g,'$1 ').trim();
+}
+function isValidQRIBAN(iban){
+  const i=String(iban||'').replace(/\s/g,'').toUpperCase();
+  if(!/^CH\d{19}$/.test(i))return false;
+  const iid=parseInt(i.substr(4,5),10);
+  return iid>=30000&&iid<=31999;
+}
+function splitZipCity(s){
+  const m=String(s||'').trim().match(/^(\d{4,5})\s+(.+)$/);
+  return m?{zip:m[1],city:m[2]}:{zip:'',city:String(s||'').trim()};
+}
+function isProfileComplete(p){
+  return p&&p.qr_iban&&p.company_name&&p.address_street&&p.address_zip&&p.address_city&&isValidQRIBAN(p.qr_iban);
+}
+function buildQRPayload(invoice,profile,total){
+  const issIban=String(profile.qr_iban||'').replace(/\s/g,'').toUpperCase();
+  const debCity=splitZipCity(invoice.client_city||'');
+  const debHasStruct=!!debCity.zip&&!!debCity.city;
+  const ref=buildQRR(invoice.number);
+  const lines=[
+    'SPC','0200','1',
+    issIban,'S',
+    String(profile.company_name||'').slice(0,70),
+    String(profile.address_street||'').slice(0,70),
+    String(profile.address_building||'').slice(0,16),
+    String(profile.address_zip||'').slice(0,16),
+    String(profile.address_city||'').slice(0,35),
+    String(profile.address_country||'CH').slice(0,2),
+    '','','','','','','',
+    Number(total).toFixed(2),'CHF',
+    debHasStruct?'S':'K',
+    String(invoice.client_name||'').slice(0,70),
+    String(invoice.client_address||'').slice(0,70),
+    debHasStruct?'':String(invoice.client_city||'').slice(0,70),
+    debHasStruct?debCity.zip:'',
+    debHasStruct?debCity.city.slice(0,35):'',
+    'CH','QRR',ref,
+    ('Facture '+(invoice.number||'')).slice(0,140),
+    'EPD'
+  ];
+  return lines.join('\r\n');
+}
+function buildSwissQRSvg(payload,sizePx){
+  const size=sizePx||180;
+  const qr=qrcode(0,'M');
+  qr.addData(payload,'Byte');
+  qr.make();
+  const n=qr.getModuleCount();
+  const m=size/n;
+  let mods='';
+  for(let r=0;r<n;r++){
+    for(let c=0;c<n;c++){
+      if(qr.isDark(r,c)){
+        mods+='<rect x="'+(c*m).toFixed(2)+'" y="'+(r*m).toFixed(2)+'" width="'+m.toFixed(2)+'" height="'+m.toFixed(2)+'" fill="#000"/>';
+      }
+    }
+  }
+  const cs=size*(7/46);
+  const cx=(size-cs)/2;
+  const ws=cs*0.07;
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+size+' '+size+'" width="'+size+'" height="'+size+'">'
+    +'<rect width="'+size+'" height="'+size+'" fill="#fff"/>'
+    +mods
+    +'<rect x="'+(cx-ws)+'" y="'+(cx-ws)+'" width="'+(cs+2*ws)+'" height="'+(cs+2*ws)+'" fill="#fff"/>'
+    +'<rect x="'+cx+'" y="'+cx+'" width="'+cs+'" height="'+cs+'" fill="#000"/>'
+    +'<rect x="'+(cx+cs*0.42)+'" y="'+(cx+cs*0.18)+'" width="'+(cs*0.16)+'" height="'+(cs*0.64)+'" fill="#fff"/>'
+    +'<rect x="'+(cx+cs*0.18)+'" y="'+(cx+cs*0.42)+'" width="'+(cs*0.64)+'" height="'+(cs*0.16)+'" fill="#fff"/>'
+  +'</svg>';
+}
+function renderSwissQRBill(invoice,profile,total){
+  if(!isProfileComplete(profile)){
+    return '<div class="qr-bill-incomplete no-print">⚠️ Renseigne tes infos de facturation (QR-IBAN, adresse) pour générer le QR-bill suisse.<button class="btn-sm btn-outline" id="goSettingsFromBill">⚙️ Compléter mon profil</button></div>';
+  }
+  const payload=buildQRPayload(invoice,profile,total);
+  const qrSvg=buildSwissQRSvg(payload,170);
+  const ref=buildQRR(invoice.number);
+  const refFmt=formatQRR(ref);
+  const ibanFmt=formatIBAN(profile.qr_iban);
+  const amount=Number(total).toFixed(2);
+  const issuerBlock=esc(profile.company_name)+'<br>'+esc(profile.address_street)+(profile.address_building?' '+esc(profile.address_building):'')+'<br>'+esc(profile.address_zip)+' '+esc(profile.address_city);
+  const debtorBlock=esc(invoice.client_name||'')+'<br>'+esc(invoice.client_address||'')+'<br>'+esc(invoice.client_city||'');
+  return ''
+    +'<div class="qr-bill" id="qrBill">'
+    +'<div class="qr-receipt">'
+      +'<div class="qr-r-title">Récépissé</div>'
+      +'<div class="qr-r-section"><div class="qr-r-label">Compte / Payable à</div><div class="qr-r-value">'+esc(ibanFmt)+'<br>'+issuerBlock+'</div></div>'
+      +'<div class="qr-r-section"><div class="qr-r-label">Référence</div><div class="qr-r-value">'+esc(refFmt)+'</div></div>'
+      +'<div class="qr-r-section"><div class="qr-r-label">Payable par</div><div class="qr-r-value">'+debtorBlock+'</div></div>'
+      +'<div class="qr-r-amount-row">'
+        +'<div><div class="qr-r-label">Monnaie</div><div class="qr-r-value">CHF</div></div>'
+        +'<div><div class="qr-r-label">Montant</div><div class="qr-r-value">'+esc(amount)+'</div></div>'
+      +'</div>'
+      +'<div class="qr-r-accept">Point de dépôt</div>'
+    +'</div>'
+    +'<div class="qr-payment">'
+      +'<div class="qr-p-left">'
+        +'<div class="qr-p-title">Section paiement</div>'
+        +'<div class="qr-p-qr">'+qrSvg+'</div>'
+        +'<div class="qr-p-amount-row">'
+          +'<div><div class="qr-p-label">Monnaie</div><div class="qr-p-value">CHF</div></div>'
+          +'<div><div class="qr-p-label">Montant</div><div class="qr-p-value">'+esc(amount)+'</div></div>'
+        +'</div>'
+      +'</div>'
+      +'<div class="qr-p-right">'
+        +'<div class="qr-p-section"><div class="qr-p-label">Compte / Payable à</div><div class="qr-p-value">'+esc(ibanFmt)+'<br>'+issuerBlock+'</div></div>'
+        +'<div class="qr-p-section"><div class="qr-p-label">Référence</div><div class="qr-p-value">'+esc(refFmt)+'</div></div>'
+        +'<div class="qr-p-section"><div class="qr-p-label">Informations supplémentaires</div><div class="qr-p-value">Facture '+esc(invoice.number||'')+'</div></div>'
+        +'<div class="qr-p-section"><div class="qr-p-label">Payable par</div><div class="qr-p-value">'+debtorBlock+'</div></div>'
+      +'</div>'
+    +'</div>'
+  +'</div>';
+}
+
+/* ---------- PDF GENERATOR ---------- */
 function generateInvoicePDF(f,sub,vt,tot){
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({unit:'mm',format:'a4'});
   const W=210,M=20;
-
-  // ── Header band ──────────────────────────────────────
   doc.setFillColor(212,169,78);
   doc.rect(0,0,W,38,'F');
   doc.setTextColor(11,11,12);
@@ -668,10 +547,7 @@ function generateInvoicePDF(f,sub,vt,tot){
   doc.setFontSize(9);
   doc.text('Date : '+(f.date||''),W-M,22,{align:'right'});
   doc.text('Échéance : '+(f.due_date||''),W-M,30,{align:'right'});
-
   let y=50;
-
-  // ── Client block ──────────────────────────────────────
   doc.setFillColor(245,245,245);
   doc.rect(M,y-4,W-2*M,30,'F');
   doc.setFontSize(7.5);
@@ -690,8 +566,6 @@ function generateInvoicePDF(f,sub,vt,tot){
   if(f.client_city){doc.text(f.client_city,M+4,cy);cy+=5;}
   if(f.client_vat){doc.text('N° TVA : '+f.client_vat,M+4,cy);}
   y+=38;
-
-  // ── Table header ─────────────────────────────────────
   doc.setFillColor(11,11,12);
   doc.rect(M,y,W-2*M,8,'F');
   doc.setFontSize(8);
@@ -702,8 +576,6 @@ function generateInvoicePDF(f,sub,vt,tot){
   doc.text('P.U.',157,y+5.5,{align:'right'});
   doc.text('TOTAL CHF',W-M-3,y+5.5,{align:'right'});
   y+=8;
-
-  // ── Items ─────────────────────────────────────────────
   (f.items||[]).forEach((item,i)=>{
     const rh=8;
     if(i%2===1){doc.setFillColor(250,250,250);doc.rect(M,y,W-2*M,rh,'F');}
@@ -717,10 +589,7 @@ function generateInvoicePDF(f,sub,vt,tot){
     doc.text((Number(item.qty||0)*Number(item.price||0)).toFixed(2),W-M-3,y+5.5,{align:'right'});
     y+=rh;
   });
-
   y+=6;
-
-  // ── Totals ────────────────────────────────────────────
   const tx=120,vx=W-M-3;
   doc.setDrawColor(220,220,220);
   doc.setLineWidth(0.3);
@@ -747,8 +616,6 @@ function generateInvoicePDF(f,sub,vt,tot){
   doc.text('TOTAL TTC',tx+3,y+6);
   doc.text(tot.toFixed(2)+' CHF',vx,y+6,{align:'right'});
   y+=16;
-
-  // ── Notes ────────────────────────────────────────────
   if(f.notes&&f.notes.trim()){
     doc.setFont('helvetica','bold');
     doc.setFontSize(9);
@@ -761,21 +628,13 @@ function generateInvoicePDF(f,sub,vt,tot){
     doc.text(lines,M,y);
     y+=lines.length*5;
   }
-
-  // ── Footer ────────────────────────────────────────────
   doc.setFillColor(245,245,245);
   doc.rect(0,278,W,19,'F');
   doc.setFont('helvetica','normal');
   doc.setFontSize(8);
   doc.setTextColor(160,160,160);
   doc.text('Généré avec FacturaPro · facturapro.ch',W/2,287,{align:'center'});
-
   return doc.output('blob');
-}
-
-function fmtDate(d){
-  try{return new Date(d+'T12:00:00').toLocaleDateString('fr-CH',{day:'2-digit',month:'long',year:'numeric'});}
-  catch(e){return d;}
 }
 
 /* ---------- RENDER ROOT ---------- */
@@ -791,33 +650,18 @@ function render(){
     case 'editor':app.innerHTML=renderEditor();break;
     case 'pricing':app.innerHTML=renderPricing();break;
     case 'contact':app.innerHTML=renderContact();break;
+    case 'settings':app.innerHTML=renderSettings();break;
   }
   bindEvents();
 }
-
 function renderLoading(){
   return '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center"><div style="font-family:\'Playfair Display\',serif;font-size:20px;color:var(--g)">FacturaPro...</div></div>';
 }
-
-/* ---------- LEGAL MODAL ---------- */
-function renderLegal(){
-  if(!state.showLegal) return '';
-  const isC=state.showLegal==='cgu';
-  return `<div class="legal-overlay" id="legalOverlay">
-    <div class="legal-box">
-      <button class="legal-close" id="legalClose">✕ Fermer</button>
-      <h2>${T(isC?'cguTitle':'mentionsTitle')}</h2>
-      ${T(isC?'cguContent':'mentionsContent')}
-    </div>
-  </div>`;
-}
-
-/* ---------- LANG SWITCHER ---------- */
 function renderLangSwitcher(){
-  const langs=[{code:'fr',label:'FR'},{code:'de',label:'DE'},{code:'en',label:'EN'}];
-  return `<div style="display:flex;gap:2px;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:3px">
-    ${langs.map(l=>`<button data-lang="${l.code}" style="padding:4px 10px;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:.15s;background:${state.lang===l.code?'var(--g)':'transparent'};color:${state.lang===l.code?'#0b0b0c':'var(--m2)'}">${l.label}</button>`).join('')}
-  </div>`;
+  const langs=[{code:'fr',label:'FR'}];
+  return '<div style="display:flex;gap:2px;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:3px">'
+    +langs.map(l=>'<button data-lang="'+l.code+'" style="padding:4px 10px;border:none;border-radius:6px;font-family:\'DM Sans\',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:.15s;background:'+(state.lang===l.code?'var(--g)':'transparent')+';color:'+(state.lang===l.code?'#0b0b0c':'var(--m2)')+'">'+l.label+'</button>').join('')
+  +'</div>';
 }
 
 /* ---------- LANDING PAGE ---------- */
@@ -826,13 +670,10 @@ function renderLanding(){
   <nav class="lp-nav">
     <div class="nav-logo" id="lpLogo">Factura<span style="color:var(--g)">Pro</span></div>
     <div style="display:flex;gap:10px;align-items:center">
-      ${renderLangSwitcher()}
       <button class="btn-sm btn-outline" id="lpLogin">${T('login')}</button>
       <button class="btn-gold-sm" id="lpSignup">${T('startFree')}</button>
     </div>
   </nav>
-
-  <!-- HERO -->
   <section class="lp-hero-section">
     <span class="lp-hero-tag">${T('heroTag')}</span>
     <h1 class="lp-hero-h1">${T('heroH1')}</h1>
@@ -845,126 +686,28 @@ function renderLanding(){
     <button class="lp-btn-primary" id="lpHeroCta">${T('heroCta')}</button>
     <p class="lp-hero-note">${T('heroNote')}</p>
   </section>
-
-  <!-- STRIP -->
   <div class="lp-strip">
     <div class="lp-strip-item"><span>⚡</span><span>${T('strip1')}</span></div>
     <div class="lp-strip-item"><span>📱</span><span>${T('strip2')}</span></div>
     <div class="lp-strip-item"><span>📧</span><span>${T('strip3')}</span></div>
     <div class="lp-strip-item"><span>🔒</span><span>${T('strip4')}</span></div>
   </div>
-
-  <!-- COMPARISON -->
-  <div style="background:var(--bg)">
-  <div class="lp-section">
-    <span class="lp-section-tag">${T('compareTag')}</span>
-    <h2>${T('compareTitle')}</h2>
-    <p class="lp-sub">${T('compareSub')}</p>
-    <div class="compare-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:760px;margin:0 auto">
-      <div style="background:var(--s1);border:1px solid var(--bd);border-radius:13px;padding:22px 18px;text-align:center">
-        <div style="font-size:11px;letter-spacing:3px;color:var(--m2);text-transform:uppercase;font-weight:600;margin-bottom:10px">bexio</div>
-        <div style="font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--tx)">35<span style="font-size:13px;color:var(--m2);font-family:'DM Sans',sans-serif;font-weight:400"> CHF${T('compareMonthly')}</span></div>
-        <div style="font-size:11px;color:var(--m2);margin-top:8px">420 CHF / an</div>
-      </div>
-      <div style="background:var(--s1);border:1px solid var(--bd);border-radius:13px;padding:22px 18px;text-align:center">
-        <div style="font-size:11px;letter-spacing:3px;color:var(--m2);text-transform:uppercase;font-weight:600;margin-bottom:10px">Magic Heidi</div>
-        <div style="font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--tx)">25<span style="font-size:13px;color:var(--m2);font-family:'DM Sans',sans-serif;font-weight:400"> CHF${T('compareMonthly')}</span></div>
-        <div style="font-size:11px;color:var(--m2);margin-top:8px">300 CHF / an</div>
-      </div>
-      <div style="background:linear-gradient(135deg,rgba(201,168,76,.14),rgba(201,168,76,.04));border:1.5px solid var(--g);border-radius:13px;padding:22px 18px;text-align:center;position:relative;box-shadow:0 6px 30px rgba(201,168,76,.18)">
-        <div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#d4a94e,#9a6e18);color:#0b0b0c;font-size:9px;letter-spacing:2px;font-weight:700;padding:4px 12px;border-radius:20px;white-space:nowrap">FACTURAPRO</div>
-        <div style="font-size:11px;letter-spacing:3px;color:var(--g);text-transform:uppercase;font-weight:600;margin-bottom:10px;margin-top:4px">&nbsp;</div>
-        <div style="font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--gl)">9<span style="font-size:13px;color:var(--gl);font-family:'DM Sans',sans-serif;font-weight:400"> CHF${T('compareMonthly')}</span></div>
-        <div style="font-size:11px;color:var(--gl);margin-top:8px;font-weight:600">79 CHF / an · -27%</div>
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:24px">
-      <span style="display:inline-block;background:var(--gd);color:var(--g);border:1px solid rgba(201,168,76,.3);padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600">💰 ${T('compareSave')}</span>
-    </div>
-  </div>
-  </div>
-
-  <!-- BEFORE / AFTER VISUEL -->
-  <div style="background:var(--s1);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)">
-  <div class="lp-section">
-    <span class="lp-section-tag">${T('beforeTag')}</span>
-    <h2>${T('beforeTitle')}</h2>
-    <p class="lp-sub">${T('beforeSub')}</p>
-    <div class="before-after-grid">
-      <!-- BEFORE: Excel chaos -->
-      <div style="background:#1a1f2e;border:1px solid rgba(255,80,80,.2);border-radius:12px;padding:20px;overflow:hidden">
-        <div style="font-size:10px;letter-spacing:3px;color:#ff6b6b;text-transform:uppercase;font-weight:600;margin-bottom:14px">${T('beforeLabel')}</div>
-        <!-- Fake Excel grid -->
-        <div style="background:#0d1117;border-radius:6px;padding:10px;font-family:monospace;font-size:10px">
-          <div style="display:grid;grid-template-columns:80px repeat(4,1fr);gap:1px;margin-bottom:1px">
-            <div style="background:#161b22;padding:4px 6px;color:#6e7681">A</div>
-            <div style="background:#161b22;padding:4px 6px;color:#6e7681">B</div>
-            <div style="background:#161b22;padding:4px 6px;color:#6e7681">C</div>
-            <div style="background:#161b22;padding:4px 6px;color:#6e7681">D</div>
-            <div style="background:#161b22;padding:4px 6px;color:#6e7681">E</div>
-          </div>
-          ${[['Client','Prestation','Prix','TVA','TOTAL'],['Dupont SA','Dev web','1500','=C2*8.1%','=C2+D2'],['Martin','Conseil','600','#REF!','???'],['','','','=SOMME(E2:E3)','#VALEUR!']].map(row=>`
-          <div style="display:grid;grid-template-columns:80px repeat(4,1fr);gap:1px;margin-bottom:1px">
-            ${row.map((cell,i)=>`<div style="background:${cell.includes('#')||cell==='???'?'rgba(255,80,80,.15)':'#0d1117'};padding:4px 6px;color:${cell.includes('#')||cell==='???'?'#ff6b6b':i===0?'#58a6ff':'#c9d1d9'};border:1px solid #21262d;white-space:nowrap;overflow:hidden">${cell}</div>`).join('')}
-          </div>`).join('')}
-        </div>
-        <div style="margin-top:12px;font-size:11px;color:#ff8080;line-height:1.6">${T('beforeItems').join('<br>')}</div>
-      </div>
-      <!-- ARROW -->
-      <div style="text-align:center;font-size:28px;color:var(--g)">→</div>
-      <!-- AFTER: FacturaPro -->
-      <div style="background:linear-gradient(135deg,rgba(201,168,76,.08),rgba(201,168,76,.02));border:1px solid rgba(201,168,76,.3);border-radius:12px;padding:20px">
-        <div style="font-size:10px;letter-spacing:3px;color:var(--g);text-transform:uppercase;font-weight:600;margin-bottom:14px">${T('afterLabel')}</div>
-        <!-- Fake clean UI -->
-        <div style="background:var(--s2);border-radius:8px;padding:12px;margin-bottom:8px">
-          <div style="font-size:9px;letter-spacing:2px;color:var(--m1);text-transform:uppercase;margin-bottom:6px">Client</div>
-          <div style="background:var(--bg);border:1px solid var(--bdg);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--tx)">Dupont SA</div>
-        </div>
-        <div style="background:var(--s2);border-radius:8px;padding:12px;margin-bottom:8px">
-          <div style="font-size:9px;letter-spacing:2px;color:var(--m1);text-transform:uppercase;margin-bottom:6px">Montant TTC</div>
-          <div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--g);font-weight:700">2 270.10 CHF</div>
-        </div>
-        <div style="background:linear-gradient(135deg,#d4a94e,#9a6e18);border-radius:8px;padding:10px;text-align:center;font-weight:700;color:#0b0b0c;font-size:13px">${T('sendInvoice')}</div>
-        <div style="margin-top:12px;font-size:11px;color:var(--gl);line-height:1.6">${T('afterItems').join('<br>')}</div>
-      </div>
-    </div>
-  </div>
-  </div>
-
-  <!-- COMMENT CA MARCHE -->
   <div style="background:var(--bg)">
   <div class="lp-section">
     <span class="lp-section-tag">${T('stepsTag')}</span>
     <h2>${T('stepsTitle')}</h2>
     <p class="lp-sub">${T('stepsSub')}</p>
     <div class="steps-grid">
-      <div class="step-card">
-        <div style="font-size:40px;margin-bottom:12px">👤</div>
-        <div class="step-num">1</div>
-        <h3>${T('step1Title')}</h3>
-        <p>${T('step1Desc')}</p>
-      </div>
-      <div class="step-card">
-        <div style="font-size:40px;margin-bottom:12px">📝</div>
-        <div class="step-num">2</div>
-        <h3>${T('step2Title')}</h3>
-        <p>${T('step2Desc')}</p>
-      </div>
-      <div class="step-card">
-        <div style="font-size:40px;margin-bottom:12px">📨</div>
-        <div class="step-num">3</div>
-        <h3>${T('step3Title')}</h3>
-        <p>${T('step3Desc')}</p>
-      </div>
+      <div class="step-card"><div style="font-size:40px;margin-bottom:12px">👤</div><div class="step-num">1</div><h3>${T('step1Title')}</h3><p>${T('step1Desc')}</p></div>
+      <div class="step-card"><div style="font-size:40px;margin-bottom:12px">📝</div><div class="step-num">2</div><h3>${T('step2Title')}</h3><p>${T('step2Desc')}</p></div>
+      <div class="step-card"><div style="font-size:40px;margin-bottom:12px">📨</div><div class="step-num">3</div><h3>${T('step3Title')}</h3><p>${T('step3Desc')}</p></div>
     </div>
   </div>
   </div>
-
-  <!-- BENEFITS -->
   <div style="background:var(--s1);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)">
   <div class="lp-section">
     <span class="lp-section-tag">${T('benefitsTag')}</span>
-    <h2>${T('benefitsTitle').replace('\n','<br>')}</h2>
+    <h2>${T('benefitsTitle').replace('\\n','<br>')}</h2>
     <p class="lp-sub">${T('benefitsSub')}</p>
     <div class="benefits-grid">
       <div class="benefit-card"><span class="benefit-icon">💥</span><div><h3>${T('b1Title')}</h3><p>${T('b1Desc')}</p></div></div>
@@ -974,22 +717,6 @@ function renderLanding(){
     </div>
   </div>
   </div>
-
-  <!-- TESTIMONIALS -->
-  <div style="background:var(--bg)">
-  <div class="lp-section">
-    <span class="lp-section-tag">${T('testiTag')}</span>
-    <h2>${T('testiTitle')}</h2>
-    <p class="lp-sub" style="margin-bottom:36px">${T('testiSub')}</p>
-    <div class="testimonials-grid">
-      <div class="testi-card"><div class="testi-stars">★★★★★</div><p class="testi-text">${T('t1')}</p><div class="testi-author"><strong>${T('t1a')}</strong>${T('t1b')}</div></div>
-      <div class="testi-card"><div class="testi-stars">★★★★★</div><p class="testi-text">${T('t2')}</p><div class="testi-author"><strong>${T('t2a')}</strong>${T('t2b')}</div></div>
-      <div class="testi-card"><div class="testi-stars">★★★★★</div><p class="testi-text">${T('t3')}</p><div class="testi-author"><strong>${T('t3a')}</strong>${T('t3b')}</div></div>
-    </div>
-  </div>
-  </div>
-
-  <!-- PRICING -->
   <div style="background:var(--s1);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)">
   <div class="lp-section">
     <span class="lp-section-tag">${T('pricTag')}</span>
@@ -999,44 +726,20 @@ function renderLanding(){
       <div class="plan-card plan-free">
         <div class="plan-name">${T('free')}</div>
         <div><span class="plan-price">0</span><span class="plan-period">${T('perMonth')}</span></div>
-        <ul class="plan-features">
-          ${T('planFeatFree').map(f=>`<li>${f}</li>`).join('')}
-        </ul>
+        <ul class="plan-features">${T('planFeatFree').map(f=>`<li>${f}</li>`).join('')}</ul>
         <button class="btn-gold" id="lpFreeStart" style="margin-bottom:0">${T('heroCta')}</button>
       </div>
       <div class="plan-card plan-solo">
         <div class="plan-name">Solo ✨</div>
         <div><span class="plan-price">9</span><span class="plan-period">${T('perMonth')}</span></div>
-        <div style="margin-top:8px;padding:10px 12px;background:var(--gd);border:1px solid rgba(201,168,76,.3);border-radius:8px;font-size:12px;color:var(--gl);line-height:1.5">
-          💰 <strong>${T('annualLabel')} :</strong> ${T('annualPrice')} ${T('annualPerYear')} — ${T('annualEquiv')} (${T('annualSave')})
-        </div>
-        <ul class="plan-features">
-          ${T('planFeatSolo').map(f=>`<li>${f}</li>`).join('')}
-        </ul>
+        <div style="margin-top:8px;padding:10px 12px;background:var(--gd);border:1px solid rgba(201,168,76,.3);border-radius:8px;font-size:12px;color:var(--gl);line-height:1.5">💰 <strong>${T('annualLabel')} :</strong> ${T('annualPrice')} ${T('annualPerYear')} — ${T('annualEquiv')} (${T('annualSave')})</div>
+        <ul class="plan-features">${T('planFeatSolo').map(f=>`<li>${f}</li>`).join('')}</ul>
         <button class="btn-gold" id="lpSoloStart" style="margin-bottom:8px">Mensuel · 9 CHF/mois</button>
         <button class="btn-sm btn-outline" id="lpSoloAnnual" style="width:100%;padding:10px 0">${T('payAnnual')} · ${T('annualPrice')} ${T('annualPerYear')}</button>
       </div>
     </div>
   </div>
   </div>
-
-  <!-- FAQ -->
-  <div style="background:var(--bg)">
-  <div class="lp-section">
-    <span class="lp-section-tag">${T('faqTag')}</span>
-    <h2>${T('faqTitle')}</h2>
-    <p class="lp-sub" style="margin-bottom:36px"></p>
-    <div class="faq-list">
-      <div class="faq-item"><div class="faq-q">${T('faq1q')}</div><div class="faq-a">${T('faq1a')}</div></div>
-      <div class="faq-item"><div class="faq-q">${T('faq2q')}</div><div class="faq-a">${T('faq2a')}</div></div>
-      <div class="faq-item"><div class="faq-q">${T('faq3q')}</div><div class="faq-a">${T('faq3a')}</div></div>
-      <div class="faq-item"><div class="faq-q">${T('faq4q')}</div><div class="faq-a">${T('faq4a')}</div></div>
-      <div class="faq-item"><div class="faq-q">${T('faq5q')}</div><div class="faq-a">${T('faq5a')}</div></div>
-    </div>
-  </div>
-  </div>
-
-  <!-- CTA BANNER + FOOTER (wrapped in explicit dark bg) -->
   <div style="background:var(--bg)">
   <div class="lp-cta-banner">
     <h2>${T('ctaTitle')}</h2>
@@ -1044,20 +747,11 @@ function renderLanding(){
     <button class="lp-btn-primary" id="lpBottomCta">${T('ctaBtn')}</button>
     <p style="font-size:12px;color:var(--m1);margin-top:14px">${T('ctaSub')}</p>
   </div>
-
-  <!-- FOOTER -->
   <footer class="lp-footer">
     FacturaPro © 2026 &nbsp;·&nbsp; Facturation Suisse &nbsp;·&nbsp; contact@facturapro.ch
-    <div class="lp-footer-links">
-      <button class="lp-footer-link" id="openCgu">${T('cguLink')}</button>
-      <button class="lp-footer-link" id="openMentions">${T('mentionsLink')}</button>
-    </div>
-    <div style="margin-top:10px;font-size:10px;color:var(--m1);letter-spacing:1px">
-      ${T('footerBy')} <span style="color:var(--g);font-weight:600">${T('footerAgency')}</span> — ${T('footerAgencyDesc')}
-    </div>
+    <div style="margin-top:10px;font-size:10px;color:var(--m1);letter-spacing:1px">${T('footerBy')} <span style="color:var(--g);font-weight:600">${T('footerAgency')}</span> — ${T('footerAgencyDesc')}</div>
   </footer>
-  </div>
-  ${renderLegal()}`;
+  </div>`;
 }
 
 /* ---------- AUTH PAGE ---------- */
@@ -1066,20 +760,16 @@ function renderAuth(){
     <span class="label-tag">Facturation Suisse</span>
     <h1>FacturaPro</h1>
     <p class="sub">${state.authMode==='login'?T('login'):T('signup')}</p>
-    <div style="display:flex;justify-content:center;margin-bottom:20px">${renderLangSwitcher()}</div>
     ${state.msg?`<div class="msg">${esc(state.msg)}</div>`:''}
-
     <button id="googleSignIn" style="width:100%;padding:13px;background:#fff;color:#1f1f1f;border:1px solid rgba(255,255,255,.1);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:10px;transition:.2s">
-      <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09 0-.73.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09 0-.73.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
       ${T('google')}
     </button>
-
     <div style="display:flex;align-items:center;gap:12px;margin:8px 0 16px">
       <div style="flex:1;height:1px;background:var(--bd)"></div>
       <span style="font-size:11px;color:var(--m1);letter-spacing:2px">OU</span>
       <div style="flex:1;height:1px;background:var(--bd)"></div>
     </div>
-
     <input class="inp" id="email" type="email" placeholder="${T('email')}" autocomplete="email"/>
     <input class="inp" id="password" type="password" placeholder="${T('password')}"/>
     <button class="btn-gold" id="authBtn">${state.authMode==='login'?T('login'):T('signup')}</button>
@@ -1088,8 +778,6 @@ function renderAuth(){
     <button class="btn-ghost" id="backToLanding" style="color:var(--m1);font-size:12px;margin-top:4px">${T('backHome')}</button>
   </div></div>`;
 }
-
-/* ---------- FORGOT PASSWORD PAGE ---------- */
 function renderForgot(){
   return `<div class="auth-wrap"><div class="auth-box">
     <span class="label-tag">Mot de passe oublié</span>
@@ -1101,8 +789,6 @@ function renderForgot(){
     <button class="btn-ghost" id="backToLogin">← Retour à la connexion</button>
   </div></div>`;
 }
-
-/* ---------- RESET PASSWORD PAGE (after email link click) ---------- */
 function renderReset(){
   return `<div class="auth-wrap"><div class="auth-box">
     <span class="label-tag">Nouveau mot de passe</span>
@@ -1128,24 +814,17 @@ function renderDashboard(){
         <span class="inv-amount">${Number(inv.total||0).toFixed(2)} CHF</span>
         <span class="badge ${inv.status==='paid'?'badge-paid':'badge-pending'}" data-toggle-status="${inv.id}" title="Cliquer pour changer">${inv.status==='paid'?'Payée':'En attente'}</span>
         ${isSoloPlan
-          ? `<button class="btn-edit" data-edit="${inv.id}">Éditer</button>
-             <button class="btn-del" data-del="${inv.id}">Supprimer</button>`
-          : `<span title="Éditer & supprimer sont inclus dans le plan Solo" style="font-size:11px;color:var(--m1);padding:6px 10px;border:1px dashed rgba(255,255,255,.1);border-radius:6px;letter-spacing:1px">🔒 Solo</span>`
-        }
+          ? `<button class="btn-edit" data-edit="${inv.id}">Éditer</button><button class="btn-del" data-del="${inv.id}">Supprimer</button>`
+          : `<span title="Éditer & supprimer sont inclus dans le plan Solo" style="font-size:11px;color:var(--m1);padding:6px 10px;border:1px dashed rgba(255,255,255,.1);border-radius:6px;letter-spacing:1px">🔒 Solo</span>`}
       </div>
     </div>`).join('');
-
   const monthCount=countInvoicesThisMonth();
   const isFree=state.plan!=='solo';
   const atLimit=isFree&&monthCount>=FREE_MONTHLY_LIMIT;
   const nearLimit=isFree&&monthCount===FREE_MONTHLY_LIMIT-1;
   const bannerBorder=atLimit?'rgba(255,100,100,.35)':nearLimit?'rgba(201,168,76,.5)':'var(--bd)';
   const bannerAccent=atLimit?'#ff8080':'var(--g)';
-  const bannerExtra=atLimit
-    ? ` · <span style="color:#ff8080;font-weight:600">⚠️ Limite atteinte</span>`
-    : nearLimit
-      ? ` · <span style="color:var(--g);font-weight:600">⚠️ Plus qu'1 facture gratuite</span>`
-      : '';
+  const bannerExtra=atLimit?` · <span style="color:#ff8080;font-weight:600">⚠️ Limite atteinte</span>`:nearLimit?` · <span style="color:var(--g);font-weight:600">⚠️ Plus qu'1 facture gratuite</span>`:'';
   const quotaBanner=isFree?`
     <div style="background:var(--s1);border:1px solid ${bannerBorder};border-radius:11px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
       <div>
@@ -1157,12 +836,11 @@ function renderDashboard(){
     <div style="background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(201,168,76,.03));border:1px solid rgba(201,168,76,.3);border-radius:11px;padding:12px 18px;margin-bottom:20px">
       <div style="font-size:11px;letter-spacing:2px;color:var(--g);text-transform:uppercase;font-weight:600">${T('soloPlan')}</div>
     </div>`;
-
   return `<nav class="nav">
     <div class="nav-logo" id="goHome">Factura<span>Pro</span></div>
     <div class="nav-actions">
-      ${renderLangSwitcher()}
-      <button class="btn-sm btn-outline" id="goContact" style="display:inline-flex;align-items:center;gap:5px" title="Contacter le support">📩 Support</button>
+      <button class="btn-sm btn-outline" id="goContact" title="Support">📩</button>
+      <button class="btn-sm btn-outline" id="goSettings" title="Mes infos de facturation">⚙️</button>
       <button class="btn-sm btn-outline" id="gopricing">${T('plans')}</button>
       <button class="btn-gold-sm" id="newInv">${T('newInvoice')}</button>
       <button class="btn-sm btn-outline" id="logout">${T('logout')}</button>
@@ -1175,17 +853,11 @@ function renderDashboard(){
     </div>
     ${quotaBanner}
     ${state.invoices.length===0
-      ? `<div class="empty">
-          <div class="icon">—</div>
-          <p>Aucune facture pour l'instant</p>
-          <button class="btn-gold" style="width:auto;padding:12px 28px" id="newInv2">Créer ma première facture</button>
-        </div>`
+      ? `<div class="empty"><div class="icon">—</div><p>Aucune facture pour l'instant</p><button class="btn-gold" style="width:auto;padding:12px 28px" id="newInv2">Créer ma première facture</button></div>`
       : `<div class="inv-list">${invCards}</div>`}
   </div>
   ${state.showLimitModal?renderLimitModal():''}`;
 }
-
-/* ---------- LIMIT MODAL ---------- */
 function renderLimitModal(){
   return `<div id="limitModalBg" style="position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px">
     <div style="background:var(--s1);border:1px solid rgba(201,168,76,.3);border-radius:16px;padding:36px 32px;max-width:420px;width:100%;text-align:center;box-shadow:0 20px 80px rgba(0,0,0,.5)">
@@ -1203,7 +875,6 @@ function renderLimitModal(){
 function renderEditor(){
   const f=state.form;
   const{sub,vt,tot}=calcTotals(f);
-
   if(state.editorTab==='preview'){
     return `<nav class="nav no-print">
       <div style="display:flex;align-items:center;gap:8px">
@@ -1219,7 +890,6 @@ function renderEditor(){
     </nav>
     <div class="preview-wrap">${renderInvoiceDoc(f,sub,vt,tot)}</div>`;
   }
-
   const itemRows=f.items.map((x,i)=>`
     <div class="item-row">
       <input class="inp" style="margin:0" data-item="${i}" data-field="desc" value="${esc(x.desc||'')}" placeholder="Description..."/>
@@ -1228,7 +898,6 @@ function renderEditor(){
       <div class="item-total">${(Number(x.qty||0)*Number(x.price||0)).toFixed(2)}</div>
       <button class="btn-remove" data-remove="${i}" title="Supprimer">×</button>
     </div>`).join('');
-
   return `<nav class="nav no-print">
     <div style="display:flex;align-items:center;gap:8px">
       <button class="btn-sm btn-outline" id="backDash">Retour</button>
@@ -1249,7 +918,6 @@ function renderEditor(){
         <div class="field"><label>Échéance</label><input type="date" id="f_due_date" value="${esc(f.due_date)}"/></div>
       </div>
     </div>
-
     <div class="card">
       <div class="card-title">Client</div>
       <div class="g2">
@@ -1259,7 +927,6 @@ function renderEditor(){
         <div class="field"><label>N° TVA</label><input id="f_client_vat" value="${esc(f.client_vat||'')}" placeholder="CHE-xxx.xxx.xxx"/></div>
       </div>
     </div>
-
     <div class="card">
       <div class="card-title">Prestations</div>
       <div class="items-header">
@@ -1282,14 +949,12 @@ function renderEditor(){
         </div>
       </div>
     </div>
-
     <div class="card">
       <div class="card-title">Notes et IBAN</div>
       <div class="field">
         <textarea id="f_notes" rows="3">${esc(f.notes||'')}</textarea>
       </div>
     </div>
-
     <div class="actions">
       <button class="btn-cancel" id="cancelEdit">Annuler</button>
       <button class="btn-save" id="saveInv" ${state.saving?'disabled':''}>${state.saving?'Enregistrement...':'Enregistrer'}</button>
@@ -1298,7 +963,7 @@ function renderEditor(){
   </div>`;
 }
 
-/* ---------- INVOICE DOCUMENT (print view) ---------- */
+/* ---------- INVOICE DOCUMENT (preview/print) ---------- */
 function renderInvoiceDoc(f,sub,vt,tot){
   const rows=f.items.map(x=>`
     <tr>
@@ -1307,7 +972,6 @@ function renderInvoiceDoc(f,sub,vt,tot){
       <td>${Number(x.price||0).toFixed(2)}</td>
       <td class="bold">${(Number(x.qty||0)*Number(x.price||0)).toFixed(2)}</td>
     </tr>`).join('');
-
   return `<div class="invoice-doc">
     <div class="inv-hdr">
       <div>
@@ -1323,8 +987,8 @@ function renderInvoiceDoc(f,sub,vt,tot){
       <div class="parties">
         <div>
           <div class="party-lbl">Émetteur</div>
-          <div class="party-name">Votre entreprise</div>
-          <div class="party-info">Adresse complète\n1000 Lausanne\nSuisse</div>
+          <div class="party-name">${esc((state.profile&&state.profile.company_name)||'Votre entreprise')}</div>
+          <div class="party-info">${esc((state.profile&&state.profile.address_street)||'Adresse complète')}\n${esc(((state.profile&&state.profile.address_zip)||'1000')+' '+((state.profile&&state.profile.address_city)||'Lausanne'))}\nSuisse</div>
         </div>
         <div>
           <div class="party-lbl">Client</div>
@@ -1332,12 +996,10 @@ function renderInvoiceDoc(f,sub,vt,tot){
           <div class="party-info">${esc(f.client_address||'')}\n${esc(f.client_city||'')}${f.client_vat?`\nN° TVA : ${esc(f.client_vat)}`:''}</div>
         </div>
       </div>
-
       <table class="inv-table">
         <thead><tr><th>Description</th><th>Qté</th><th>Prix unit.</th><th>Total CHF</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
-
       <div class="totals-section">
         <div class="totals-box">
           <div class="total-line"><span>Sous-total HT</span><span>${sub.toFixed(2)} CHF</span></div>
@@ -1345,23 +1007,10 @@ function renderInvoiceDoc(f,sub,vt,tot){
           <div class="grand-line"><span>Total TTC</span><span>${tot.toFixed(2)} CHF</span></div>
         </div>
       </div>
-
-      <div class="qr-box">
-        <div style="flex-shrink:0">
-          <div class="qr-title">QR-Facture Suisse</div>
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent('SPC\n0200\n1\n' + (f.notes||'').match(/CH[\w\s]*/)?.[0]?.replace(/\s/g,'')||'CH0000000000000000000' + '\nK\nVotre entreprise\n1000 Lausanne\nCH\n' + tot.toFixed(2) + '\nCHF\n\n\n\n\n\n\nNON\n\n' + f.number)}" width="110" height="110" style="border-radius:4px;display:block" alt="QR Code" onerror="this.style.display='none'"/>
-        </div>
-        <div class="qr-info">
-          <div class="qr-title">Informations de paiement</div>
-          Émise le ${fmtDate(f.date)}<br>
-          À régler avant le ${fmtDate(f.due_date)}<br>
-          Montant : <strong>${tot.toFixed(2)} CHF</strong>
-        </div>
-        <div class="qr-notes">${esc(f.notes||'')}</div>
-      </div>
     </div>
     <div class="inv-footer">Merci de votre confiance</div>
-  </div>`;
+  </div>
+  ${renderSwissQRBill(f,state.profile||{},tot)}`;
 }
 
 /* ---------- PRICING PAGE ---------- */
@@ -1377,26 +1026,18 @@ function renderPricing(){
       <span class="label-tag">${T('pricTag')}</span>
       <h1 style="font-family:'Playfair Display',serif;font-size:36px;color:var(--tx);margin-top:8px">${T('pricingTitle')}</h1>
       <p style="color:var(--m2);margin-top:12px">${T('pricingDesc')}</p>
-
       <div class="pricing-grid">
         <div class="plan-card plan-free">
           <div class="plan-name">${T('free')}</div>
           <div><span class="plan-price">0</span><span class="plan-period">${T('perMonth')}</span></div>
-          <ul class="plan-features">
-            ${T('planFeatFree').map(f=>`<li>${f}</li>`).join('')}
-          </ul>
+          <ul class="plan-features">${T('planFeatFree').map(f=>`<li>${f}</li>`).join('')}</ul>
           <button class="btn-sm btn-outline" style="width:100%;padding:12px" id="backDash2">${T('currentPlan')}</button>
         </div>
-
         <div class="plan-card plan-solo">
           <div class="plan-name">Solo</div>
           <div><span class="plan-price">9</span><span class="plan-period">${T('perMonth')}</span></div>
-          <div style="margin-top:8px;padding:10px 12px;background:var(--gd);border:1px solid rgba(201,168,76,.3);border-radius:8px;font-size:12px;color:var(--gl);line-height:1.5">
-            💰 <strong>${T('annualLabel')} :</strong> ${T('annualPrice')} ${T('annualPerYear')} — ${T('annualEquiv')} (${T('annualSave')})
-          </div>
-          <ul class="plan-features">
-            ${T('planFeatSolo').map(f=>`<li>${f}</li>`).join('')}
-          </ul>
+          <div style="margin-top:8px;padding:10px 12px;background:var(--gd);border:1px solid rgba(201,168,76,.3);border-radius:8px;font-size:12px;color:var(--gl);line-height:1.5">💰 <strong>${T('annualLabel')} :</strong> ${T('annualPrice')} ${T('annualPerYear')} — ${T('annualEquiv')} (${T('annualSave')})</div>
+          <ul class="plan-features">${T('planFeatSolo').map(f=>`<li>${f}</li>`).join('')}</ul>
           <button class="btn-gold" id="upgradeStripe" style="margin-bottom:8px">Mensuel · 9 CHF/mois</button>
           <button class="btn-sm btn-outline" id="upgradeStripeAnnual" style="width:100%;padding:10px 0">${T('payAnnual')} · ${T('annualPrice')} ${T('annualPerYear')}</button>
         </div>
@@ -1421,11 +1062,9 @@ function renderContact(){
       <h1>Une question ?</h1>
       <p class="sub">Écris-nous, on te répond rapidement.</p>
       ${state.msg?`<div class="msg">${esc(state.msg)}</div>`:''}
-
       <input class="inp" id="contactEmail" type="email" placeholder="Ton email" autocomplete="email" value="${esc(userEmail)}"/>
       <input class="inp" id="contactSubject" type="text" placeholder="Objet de ton message"/>
       <textarea class="inp" id="contactMessage" rows="6" placeholder="Décris ta demande, ton problème ou ta suggestion..." style="resize:vertical;min-height:140px;font-family:'DM Sans',sans-serif"></textarea>
-
       <button class="btn-gold" id="contactSendBtn">📩 Envoyer le message</button>
       <p style="font-size:11px;color:var(--m1);text-align:center;margin-top:8px;line-height:1.5">
         Ton message sera envoyé à ${esc(CONTACT_EMAIL)}.<br>Réponse sous 24h en général.
@@ -1434,57 +1073,103 @@ function renderContact(){
   </div>`;
 }
 
+/* ---------- SETTINGS PAGE (QR-IBAN, adresse) ---------- */
+function renderSettings(){
+  const p=state.profile||{};
+  return `<nav class="nav">
+    <div class="nav-logo" id="goHome">Factura<span>Pro</span></div>
+    <div class="nav-actions">
+      <button class="btn-sm btn-outline" id="settingsBack">${T('back')}</button>
+    </div>
+  </nav>
+  <div class="editor">
+    <div class="dash-header" style="margin-bottom:24px">
+      <div class="eyebrow">⚙️ Mon profil</div>
+      <h1 style="font-family:'Playfair Display',serif;font-size:28px;color:var(--tx);margin-top:4px">Infos de facturation</h1>
+    </div>
+    ${state.msg?`<div class="msg" style="margin-bottom:14px">${esc(state.msg)}</div>`:''}
+    <div class="card">
+      <div class="card-title">Émetteur (apparaît sur le QR-bill)</div>
+      <div class="g2">
+        <div class="field"><label>Nom de l'entreprise *</label><input id="p_company_name" value="${esc(p.company_name||'')}" placeholder="Mon Entreprise SA"/></div>
+        <div class="field"><label>QR-IBAN * (IID 30000-31999)</label><input id="p_qr_iban" value="${esc(p.qr_iban||'')}" placeholder="CH00 3000 0000 0000 0000 0"/></div>
+        <div class="field"><label>Rue *</label><input id="p_address_street" value="${esc(p.address_street||'')}" placeholder="Rue du Lac"/></div>
+        <div class="field"><label>Numéro</label><input id="p_address_building" value="${esc(p.address_building||'')}" placeholder="12"/></div>
+        <div class="field"><label>NPA *</label><input id="p_address_zip" value="${esc(p.address_zip||'')}" placeholder="1000"/></div>
+        <div class="field"><label>Ville *</label><input id="p_address_city" value="${esc(p.address_city||'')}" placeholder="Lausanne"/></div>
+        <div class="field"><label>Pays</label><input id="p_address_country" value="${esc(p.address_country||'CH')}" placeholder="CH"/></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-cancel" id="settingsCancel">Annuler</button>
+      <button class="btn-save" id="settingsSave">Enregistrer mes infos</button>
+    </div>
+    <div style="font-size:12px;color:var(--m1);text-align:center;margin-top:12px;line-height:1.6;padding:0 12px">
+      💡 Le QR-IBAN te permet de générer une référence QRR (27 chiffres) reconnue par toutes les banques suisses.<br>
+      Pour le trouver : connecte-toi à ton e-banking → "QR-IBAN" ou "Données de paiement". Si tu n'en as pas, demande-le à ta banque (gratuit).
+    </div>
+  </div>`;
+}
 
+async function saveProfileSettings(){
+  const get=id=>{const el=document.getElementById(id);return el?(el.value||'').trim():'';};
+  const iban=get('p_qr_iban').replace(/\s/g,'').toUpperCase();
+  if(!isValidQRIBAN(iban)){
+    state.msg='⚠️ QR-IBAN invalide. Format CHxx 3xxx xxxx xxxx xxxx x (21 caractères, IID entre 30000 et 31999)';
+    render();return;
+  }
+  if(!get('p_company_name')||!get('p_address_street')||!get('p_address_zip')||!get('p_address_city')){
+    state.msg='⚠️ Remplis tous les champs marqués d\'une étoile';
+    render();return;
+  }
+  const payload={
+    id:state.session.user.id,
+    company_name:get('p_company_name'),
+    qr_iban:iban,
+    address_street:get('p_address_street'),
+    address_building:get('p_address_building'),
+    address_zip:get('p_address_zip'),
+    address_city:get('p_address_city'),
+    address_country:get('p_address_country')||'CH'
+  };
+  state.msg='Enregistrement...';render();
+  try{
+    const{error}=await sb.from('profiles').upsert(payload,{onConflict:'id'});
+    if(error)throw error;
+    await loadPlan();
+    state.msg='✓ Infos enregistrées';
+    setTimeout(()=>{state.page='dashboard';state.msg='';render();},900);
+    render();
+  }catch(e){
+    state.msg='Erreur: '+(e.message||e);render();
+  }
+}
+
+/* ---------- BIND EVENTS ---------- */
 function bindEvents(){
-  // ---- LANGUAGE SWITCHER ----
-  document.querySelectorAll('[data-lang]').forEach(btn=>{
-    btn.onclick=()=>{state.lang=btn.getAttribute('data-lang');render();};
-  });
-
-  // ---- LANDING PAGE ----
+  document.querySelectorAll('[data-lang]').forEach(btn=>{btn.onclick=()=>{state.lang=btn.getAttribute('data-lang');render();};});
+  // LANDING
   const lpLogo=document.getElementById('lpLogo');
   if(lpLogo) lpLogo.onclick=()=>{state.page='landing';render();};
   const lpLogin=document.getElementById('lpLogin');
-  if(lpLogin) lpLogin.onclick=()=>{state.authMode='login';state.msg='';state.showLegal=null;state.page='auth';render();};
+  if(lpLogin) lpLogin.onclick=()=>{state.authMode='login';state.msg='';state.page='auth';render();};
   const lpSignupBtn=document.getElementById('lpSignup');
-  if(lpSignupBtn) lpSignupBtn.onclick=()=>{state.authMode='signup';state.msg='';state.showLegal=null;state.page='auth';render();};
+  if(lpSignupBtn) lpSignupBtn.onclick=()=>{state.authMode='signup';state.msg='';state.page='auth';render();};
   const lpHeroCta=document.getElementById('lpHeroCta');
-  if(lpHeroCta) lpHeroCta.onclick=()=>{state.authMode='signup';state.msg='';state.showLegal=null;state.page='auth';render();};
+  if(lpHeroCta) lpHeroCta.onclick=()=>{state.authMode='signup';state.msg='';state.page='auth';render();};
   const lpFreeStart=document.getElementById('lpFreeStart');
   if(lpFreeStart) lpFreeStart.onclick=()=>{state.authMode='signup';state.msg='';state.page='auth';render();};
   const lpSoloStart=document.getElementById('lpSoloStart');
   if(lpSoloStart) lpSoloStart.onclick=()=>{state.authMode='signup';state.msg='';state.page='auth';render();};
   const lpSoloAnnual=document.getElementById('lpSoloAnnual');
-  if(lpSoloAnnual) lpSoloAnnual.onclick=()=>{
-    const url=STRIPE_LINK_ANNUAL||STRIPE_LINK;
-    window.open(url,'_blank','noopener,noreferrer');
-  };
+  if(lpSoloAnnual) lpSoloAnnual.onclick=()=>{window.open(STRIPE_LINK_ANNUAL||STRIPE_LINK,'_blank','noopener,noreferrer');};
   const lpBottomCta=document.getElementById('lpBottomCta');
   if(lpBottomCta) lpBottomCta.onclick=()=>{state.authMode='signup';state.msg='';state.page='auth';render();};
-  // FAQ accordion
-  document.querySelectorAll('.faq-item').forEach(item=>{
-    const q=item.querySelector('.faq-q');
-    if(q) q.onclick=()=>{item.classList.toggle('open');};
-  });
-  // CGU / Mentions légales
-  const openCgu=document.getElementById('openCgu');
-  if(openCgu) openCgu.onclick=()=>{state.showLegal='cgu';render();};
-  const openMentions=document.getElementById('openMentions');
-  if(openMentions) openMentions.onclick=()=>{state.showLegal='mentions';render();};
-  const legalClose=document.getElementById('legalClose');
-  if(legalClose) legalClose.onclick=()=>{state.showLegal=null;render();};
-  const legalOverlay=document.getElementById('legalOverlay');
-  if(legalOverlay) legalOverlay.onclick=(e)=>{if(e.target===legalOverlay){state.showLegal=null;render();}};
-
-  // Back to landing from auth
   const backToLanding=document.getElementById('backToLanding');
   if(backToLanding) backToLanding.onclick=()=>{state.page='landing';render();};
-
-  // Logo -> dashboard
   const logo=document.getElementById('goHome');
   if(logo) logo.onclick=()=>{state.page='dashboard';render();};
-
-  // ---- AUTH ----
+  // AUTH
   const authBtn=document.getElementById('authBtn');
   if(authBtn){
     authBtn.onclick=async()=>{
@@ -1511,41 +1196,26 @@ function bindEvents(){
             state.authMode='login';render();
           }
         }
-      }catch(e){
-        state.msg=e.message||'Erreur';render();
-      }
+      }catch(e){state.msg=e.message||'Erreur';render();}
     };
   }
-
   const toggleAuth=document.getElementById('toggleAuth');
   if(toggleAuth) toggleAuth.onclick=()=>{state.authMode=state.authMode==='login'?'signup':'login';state.msg='';render();};
-
-  // ---- GOOGLE SIGN IN ----
   const googleSignIn=document.getElementById('googleSignIn');
   if(googleSignIn){
     googleSignIn.onclick=async()=>{
       state.msg='Redirection vers Google...';render();
       try{
-        const{error}=await sb.auth.signInWithOAuth({
-          provider:'google',
-          options:{
-            redirectTo:window.location.origin+window.location.pathname
-          }
-        });
+        const{error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin+window.location.pathname}});
         if(error)throw error;
-      }catch(e){
-        state.msg=e.message||'Erreur Google';render();
-      }
+      }catch(e){state.msg=e.message||'Erreur Google';render();}
     };
   }
-
-  // ---- FORGOT PASSWORD ----
+  // FORGOT
   const gotoForgot=document.getElementById('gotoForgot');
   if(gotoForgot) gotoForgot.onclick=()=>{state.page='forgot';state.msg='';render();};
-
   const backToLogin=document.getElementById('backToLogin');
   if(backToLogin) backToLogin.onclick=()=>{state.page='auth';state.authMode='login';state.msg='';render();};
-
   const sendResetBtn=document.getElementById('sendResetBtn');
   if(sendResetBtn){
     sendResetBtn.onclick=async()=>{
@@ -1553,18 +1223,13 @@ function bindEvents(){
       if(!email){state.msg='Email requis';render();return;}
       state.msg='Envoi en cours...';render();
       try{
-        const{error}=await sb.auth.resetPasswordForEmail(email,{
-          redirectTo:window.location.origin+window.location.pathname
-        });
+        const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});
         if(error)throw error;
         state.msg='✓ Email envoyé ! Vérifie ta boîte de réception.';render();
-      }catch(e){
-        state.msg=e.message||'Erreur lors de l\'envoi';render();
-      }
+      }catch(e){state.msg=e.message||'Erreur lors de l\'envoi';render();}
     };
   }
-
-  // ---- RESET PASSWORD ----
+  // RESET
   const updatePasswordBtn=document.getElementById('updatePasswordBtn');
   if(updatePasswordBtn){
     updatePasswordBtn.onclick=async()=>{
@@ -1580,122 +1245,86 @@ function bindEvents(){
         await loadInvoices();
         setTimeout(()=>{state.page='dashboard';state.msg='';render();},1200);
         render();
-      }catch(e){
-        state.msg=e.message||'Erreur';render();
-      }
+      }catch(e){state.msg=e.message||'Erreur';render();}
     };
   }
-
-  // ---- DASHBOARD ----
+  // DASHBOARD
   const logout=document.getElementById('logout');
-  if(logout) logout.onclick=async()=>{await sb.auth.signOut();state.session=null;state.invoices=[];state.page='auth';render();};
-
+  if(logout) logout.onclick=async()=>{await sb.auth.signOut();state.session=null;state.invoices=[];state.profile=null;state.page='auth';render();};
   const newInv=document.getElementById('newInv');
   if(newInv) newInv.onclick=()=>{
     if(!canCreateInvoice()){state.showLimitModal=true;render();return;}
     state.form=newInvoice();state.currentInvoice=null;state.editorTab='edit';state.saving=false;state.page='editor';render();
   };
-
   const newInv2=document.getElementById('newInv2');
   if(newInv2) newInv2.onclick=()=>{
     if(!canCreateInvoice()){state.showLimitModal=true;render();return;}
     state.form=newInvoice();state.currentInvoice=null;state.editorTab='edit';state.saving=false;state.page='editor';render();
   };
-
   const gopricing=document.getElementById('gopricing');
   if(gopricing) gopricing.onclick=()=>{state.page='pricing';render();};
-
-  // ---- CONTACT (Support) ----
+  // SETTINGS
+  const goSettings=document.getElementById('goSettings');
+  if(goSettings) goSettings.onclick=()=>{state.msg='';state.page='settings';render();};
+  const goSettingsFromBill=document.getElementById('goSettingsFromBill');
+  if(goSettingsFromBill) goSettingsFromBill.onclick=()=>{state.msg='';state.page='settings';render();};
+  const settingsBack=document.getElementById('settingsBack');
+  if(settingsBack) settingsBack.onclick=()=>{state.msg='';state.page='dashboard';render();};
+  const settingsCancel=document.getElementById('settingsCancel');
+  if(settingsCancel) settingsCancel.onclick=()=>{state.msg='';state.page='dashboard';render();};
+  const settingsSave=document.getElementById('settingsSave');
+  if(settingsSave) settingsSave.onclick=saveProfileSettings;
+  // CONTACT
   const goContact=document.getElementById('goContact');
   if(goContact) goContact.onclick=()=>{state.msg='';state.page='contact';render();};
-
   const contactBack=document.getElementById('contactBack');
-  if(contactBack) contactBack.onclick=()=>{
-    state.msg='';
-    state.page=state.session?'dashboard':'landing';
-    render();
-  };
-
+  if(contactBack) contactBack.onclick=()=>{state.msg='';state.page=state.session?'dashboard':'landing';render();};
   const contactSendBtn=document.getElementById('contactSendBtn');
   if(contactSendBtn){
     contactSendBtn.onclick=async()=>{
       const email=(document.getElementById('contactEmail').value||'').trim();
       const subject=(document.getElementById('contactSubject').value||'').trim();
       const message=(document.getElementById('contactMessage').value||'').trim();
-
       if(!email||!email.includes('@')){state.msg='⚠️ Email valide requis';render();return;}
       if(!subject){state.msg='⚠️ Objet requis';render();return;}
       if(!message){state.msg='⚠️ Message requis';render();return;}
-
-      // Mode 1 : Formspree configuré → envoi silencieux
       if(FORMSPREE_ID&&FORMSPREE_ID.trim()){
         state.msg='Envoi en cours...';render();
         try{
           const res=await fetch('https://formspree.io/f/'+FORMSPREE_ID,{
             method:'POST',
             headers:{'Content-Type':'application/json','Accept':'application/json'},
-            body:JSON.stringify({
-              email:email,
-              _replyto:email,
-              _subject:'[FacturaPro Contact] '+subject,
-              subject:subject,
-              message:message
-            })
+            body:JSON.stringify({email:email,_replyto:email,_subject:'[FacturaPro Contact] '+subject,subject:subject,message:message})
           });
           if(!res.ok)throw new Error('Erreur réseau');
           state.msg='✓ Message envoyé ! On te répond rapidement.';
-          // Vider les champs
-          const e=document.getElementById('contactEmail');
           const s=document.getElementById('contactSubject');
           const m=document.getElementById('contactMessage');
           if(s)s.value='';
           if(m)m.value='';
           render();
-        }catch(e){
-          console.error(e);
-          state.msg='❌ Erreur d\'envoi. Réessaie ou écris directement à '+CONTACT_EMAIL;
-          render();
-        }
+        }catch(e){state.msg='❌ Erreur d\'envoi. Réessaie ou écris directement à '+CONTACT_EMAIL;render();}
         return;
       }
-
-      // Mode 2 : Pas de Formspree → fallback mailto
       const mailSubject=encodeURIComponent('[FacturaPro] '+subject);
-      const mailBody=encodeURIComponent(
-        message+'\n\n---\nDe : '+email+'\nEnvoyé depuis facturapro.ch'
-      );
+      const mailBody=encodeURIComponent(message+'\n\n---\nDe : '+email+'\nEnvoyé depuis facturapro.ch');
       window.location.href='mailto:'+CONTACT_EMAIL+'?subject='+mailSubject+'&body='+mailBody;
-      state.msg='📧 Ton app Mail s\'ouvre. Vérifie l\'envoi puis envoie le mail.';
-      render();
+      state.msg='📧 Ton app Mail s\'ouvre. Vérifie l\'envoi puis envoie le mail.';render();
     };
   }
-
-  // ---- LIMIT MODAL & QUOTA BANNER ----
+  // LIMIT MODAL
   const closeLimitModal=document.getElementById('closeLimitModal');
   if(closeLimitModal) closeLimitModal.onclick=()=>{state.showLimitModal=false;render();};
-
   const limitModalBg=document.getElementById('limitModalBg');
-  if(limitModalBg) limitModalBg.onclick=(e)=>{
-    if(e.target&&e.target.id==='limitModalBg'){state.showLimitModal=false;render();}
-  };
-
+  if(limitModalBg) limitModalBg.onclick=(e)=>{if(e.target&&e.target.id==='limitModalBg'){state.showLimitModal=false;render();}};
   const upgradeFromModal=document.getElementById('upgradeFromModal');
-  if(upgradeFromModal) upgradeFromModal.onclick=()=>{
-    window.open(STRIPE_LINK,'_blank','noopener,noreferrer');
-    state.showLimitModal=false;render();
-  };
-
+  if(upgradeFromModal) upgradeFromModal.onclick=()=>{window.open(STRIPE_LINK,'_blank','noopener,noreferrer');state.showLimitModal=false;render();};
   const upgradeFromDash=document.getElementById('upgradeFromDash');
-  if(upgradeFromDash) upgradeFromDash.onclick=()=>{
-    window.open(STRIPE_LINK,'_blank','noopener,noreferrer');
-  };
-
+  if(upgradeFromDash) upgradeFromDash.onclick=()=>{window.open(STRIPE_LINK,'_blank','noopener,noreferrer');};
+  // EDIT/DELETE invoices
   document.querySelectorAll('[data-edit]').forEach(btn=>{
     btn.onclick=()=>{
-      // 🔒 Garde anti-contournement : édition réservée au plan Solo
-      if(state.plan!=='solo'){
-        state.showLimitModal=true;render();return;
-      }
+      if(state.plan!=='solo'){state.showLimitModal=true;render();return;}
       const id=btn.getAttribute('data-edit');
       const inv=state.invoices.find(i=>String(i.id)===String(id));
       if(inv){
@@ -1704,8 +1333,7 @@ function bindEvents(){
           number:inv.number,date:inv.date,due_date:inv.due_date,
           client_name:inv.client_name||'',client_address:inv.client_address||'',
           client_city:inv.client_city||'',client_vat:inv.client_vat||'',
-          vat_rate:Number(inv.vat_rate||8.1),
-          notes:inv.notes||'',
+          vat_rate:Number(inv.vat_rate||8.1),notes:inv.notes||'',
           items:Array.isArray(inv.items)?inv.items:[{desc:'',qty:1,price:0}],
           status:inv.status||'pending'
         }));
@@ -1713,20 +1341,15 @@ function bindEvents(){
       }
     };
   });
-
   document.querySelectorAll('[data-del]').forEach(btn=>{
     btn.onclick=async()=>{
-      // 🔒 Garde anti-contournement : suppression réservée au plan Solo
-      if(state.plan!=='solo'){
-        state.showLimitModal=true;render();return;
-      }
+      if(state.plan!=='solo'){state.showLimitModal=true;render();return;}
       if(!confirm('Supprimer cette facture ?'))return;
       const id=btn.getAttribute('data-del');
       await sb.from('invoices').delete().eq('id',id);
       await loadInvoices();render();
     };
   });
-
   document.querySelectorAll('[data-toggle-status]').forEach(el=>{
     el.onclick=async()=>{
       const id=el.getAttribute('data-toggle-status');
@@ -1737,24 +1360,19 @@ function bindEvents(){
       await loadInvoices();render();
     };
   });
-
-  // ---- EDITOR ----
+  // EDITOR
   const backDash=document.getElementById('backDash');
   if(backDash) backDash.onclick=()=>{state.saving=false;state.page='dashboard';render();};
   const backDash2=document.getElementById('backDash2');
-  if(backDash2) backDash2.onclick=()=>{state.saving=false;state.page='dashboard';render()};
-
+  if(backDash2) backDash2.onclick=()=>{state.saving=false;state.page='dashboard';render();};
   const tabEdit=document.getElementById('tabEdit');
   if(tabEdit) tabEdit.onclick=()=>{state.editorTab='edit';render();};
   const tabPreview=document.getElementById('tabPreview');
   if(tabPreview) tabPreview.onclick=()=>{syncFormFromDOM();state.editorTab='preview';render();};
-
   const printInv=document.getElementById('printInv');
   if(printInv) printInv.onclick=()=>window.print();
-
   const addItem=document.getElementById('addItem');
   if(addItem) addItem.onclick=()=>{syncFormFromDOM();state.form.items.push({desc:'',qty:1,price:0});render();};
-
   document.querySelectorAll('[data-remove]').forEach(btn=>{
     btn.onclick=()=>{
       const i=Number(btn.getAttribute('data-remove'));
@@ -1763,7 +1381,6 @@ function bindEvents(){
       render();
     };
   });
-
   function updateTotalsInPlace(){
     const f=state.form;
     const rows=document.querySelectorAll('.item-row');
@@ -1778,47 +1395,27 @@ function bindEvents(){
     });
     const{sub,vt,tot}=calcTotals(f);
     const totalRows=document.querySelectorAll('.totals .total-row');
-    if(totalRows[0]){
-      const subEl=totalRows[0].querySelector('span:last-child');
-      if(subEl)subEl.textContent=sub.toFixed(2)+' CHF';
-    }
-    if(totalRows[1]){
-      const vatEl=totalRows[1].querySelector('span:last-child');
-      if(vatEl)vatEl.textContent=vt.toFixed(2)+' CHF';
-    }
+    if(totalRows[0]){const subEl=totalRows[0].querySelector('span:last-child');if(subEl)subEl.textContent=sub.toFixed(2)+' CHF';}
+    if(totalRows[1]){const vatEl=totalRows[1].querySelector('span:last-child');if(vatEl)vatEl.textContent=vt.toFixed(2)+' CHF';}
     const grandEl=document.querySelector('.grand-amount');
     if(grandEl)grandEl.textContent=tot.toFixed(2)+' CHF';
   }
-
   document.querySelectorAll('[data-item]').forEach(inp=>{
-    inp.oninput=()=>{
-      syncFormFromDOM();
-      updateTotalsInPlace();
-    };
+    inp.oninput=()=>{syncFormFromDOM();updateTotalsInPlace();};
   });
-
   const vatSel=document.getElementById('f_vat_rate');
   if(vatSel) vatSel.onchange=()=>{syncFormFromDOM();updateTotalsInPlace();};
-
   const cancelEdit=document.getElementById('cancelEdit');
-  if(cancelEdit) cancelEdit.onclick=()=>{state.saving=false;state.page='dashboard';render()};
-
+  if(cancelEdit) cancelEdit.onclick=()=>{state.saving=false;state.page='dashboard';render();};
   const saveInv=document.getElementById('saveInv');
   if(saveInv) saveInv.onclick=saveInvoice;
-
   const sendEmailInv=document.getElementById('sendEmailInv');
   if(sendEmailInv) sendEmailInv.onclick=saveAndSendInvoiceByEmail;
-
-  // ---- PRICING ----
+  // PRICING
   const upgradeStripe=document.getElementById('upgradeStripe');
-  if(upgradeStripe) upgradeStripe.onclick=()=>{
-    window.open(STRIPE_LINK,'_blank','noopener,noreferrer');
-  };
+  if(upgradeStripe) upgradeStripe.onclick=()=>{window.open(STRIPE_LINK,'_blank','noopener,noreferrer');};
   const upgradeStripeAnnual=document.getElementById('upgradeStripeAnnual');
-  if(upgradeStripeAnnual) upgradeStripeAnnual.onclick=()=>{
-    const url=STRIPE_LINK_ANNUAL||STRIPE_LINK;
-    window.open(url,'_blank','noopener,noreferrer');
-  };
+  if(upgradeStripeAnnual) upgradeStripeAnnual.onclick=()=>{window.open(STRIPE_LINK_ANNUAL||STRIPE_LINK,'_blank','noopener,noreferrer');};
 }
 
 /* ---------- FORM SYNC ---------- */
@@ -1843,22 +1440,21 @@ function syncFormFromDOM(){
   });
 }
 
-/* ---------- DATA: LOAD / SAVE ---------- */
+/* ---------- DATA ---------- */
 async function loadInvoices(){
   if(!state.session)return;
   const{data,error}=await sb.from('invoices').select('*').order('created_at',{ascending:false});
   if(error){console.error(error);return;}
   state.invoices=data||[];
 }
-
-// FIX: lit depuis 'profiles' (colonne 'id') au lieu de 'user_plans' (colonne 'user_id')
+// Charge plan + infos de facturation (QR-IBAN, adresse)
 async function loadPlan(){
-  if(!state.session){state.plan='free';return;}
-  const{data,error}=await sb.from('profiles').select('plan').eq('id',state.session.user.id).maybeSingle();
-  if(error){console.error('loadPlan error',error);state.plan='free';return;}
+  if(!state.session){state.profile=null;state.plan='free';return;}
+  const{data,error}=await sb.from('profiles').select('*').eq('id',state.session.user.id).maybeSingle();
+  if(error){console.error('loadPlan error',error);state.profile=null;state.plan='free';return;}
+  state.profile=data||{};
   state.plan=(data&&data.plan)||'free';
 }
-
 function countInvoicesThisMonth(){
   const now=new Date();
   const y=now.getFullYear();
@@ -1869,42 +1465,28 @@ function countInvoicesThisMonth(){
     return d.getFullYear()===y&&d.getMonth()===m;
   }).length;
 }
-
 function canCreateInvoice(){
   if(state.plan==='solo')return true;
   return countInvoicesThisMonth()<FREE_MONTHLY_LIMIT;
 }
-
 async function saveInvoice(){
   if(state.saving)return;
   syncFormFromDOM();
   const f=state.form;
   if(!f.client_name||!f.client_name.trim()){alert('Le nom du client est requis');return;}
   const isNew=!state.currentInvoice||!state.currentInvoice.id;
-  if(isNew&&!canCreateInvoice()){
-    state.showLimitModal=true;state.page='dashboard';render();return;
-  }
+  if(isNew&&!canCreateInvoice()){state.showLimitModal=true;state.page='dashboard';render();return;}
   const{sub,vt,tot}=calcTotals(f);
   state.saving=true;render();
-
   const payload={
     user_id:state.session.user.id,
-    number:f.number,
-    date:f.date,
-    due_date:f.due_date,
-    client_name:f.client_name,
-    client_address:f.client_address,
-    client_city:f.client_city,
-    client_vat:f.client_vat,
-    vat_rate:Number(f.vat_rate),
-    notes:f.notes,
-    items:f.items,
+    number:f.number,date:f.date,due_date:f.due_date,
+    client_name:f.client_name,client_address:f.client_address,
+    client_city:f.client_city,client_vat:f.client_vat,
+    vat_rate:Number(f.vat_rate),notes:f.notes,items:f.items,
     status:f.status||'pending',
-    subtotal:Number(sub.toFixed(2)),
-    vat_amount:Number(vt.toFixed(2)),
-    total:Number(tot.toFixed(2))
+    subtotal:Number(sub.toFixed(2)),vat_amount:Number(vt.toFixed(2)),total:Number(tot.toFixed(2))
   };
-
   try{
     if(state.currentInvoice&&state.currentInvoice.id){
       const{error}=await sb.from('invoices').update(payload).eq('id',state.currentInvoice.id);
@@ -1917,13 +1499,10 @@ async function saveInvoice(){
     state.saving=false;
     state.page='dashboard';render();
   }catch(e){
-    console.error(e);
-    state.saving=false;
-    alert('Erreur lors de l\'enregistrement : '+(e.message||e));
-    render();
+    console.error(e);state.saving=false;
+    alert('Erreur lors de l\'enregistrement : '+(e.message||e));render();
   }
 }
-
 async function saveAndSendInvoiceByEmail(){
   syncFormFromDOM();
   const f=state.form;
@@ -1931,8 +1510,6 @@ async function saveAndSendInvoiceByEmail(){
   const isNew=!state.currentInvoice||!state.currentInvoice.id;
   if(isNew&&!canCreateInvoice()){state.showLimitModal=true;state.page='dashboard';render();return;}
   const{sub,vt,tot}=calcTotals(f);
-
-  // 1. Save invoice
   state.saving=true;render();
   const payload={
     user_id:state.session.user.id,
@@ -1957,38 +1534,23 @@ async function saveAndSendInvoiceByEmail(){
     console.error(e);state.saving=false;
     alert('Erreur lors de l\'enregistrement : '+(e.message||e));render();return;
   }
-
-  // 2. Generate PDF
   const pdfBlob=generateInvoicePDF(f,sub,vt,tot);
   const fname='Facture-'+(f.number||'').replace(/[\/\\]/g,'-')+'.pdf';
   const pdfFile=new File([pdfBlob],fname,{type:'application/pdf'});
-
-  // 3. Try Web Share API (iOS, Android, macOS Safari)
   if(navigator.share&&navigator.canShare&&navigator.canShare({files:[pdfFile]})){
     try{
-      await navigator.share({
-        files:[pdfFile],
-        title:'Facture '+(f.number||'')+' — '+(f.client_name||''),
-        text:'Veuillez trouver ci-joint votre facture n° '+(f.number||'')+' — Total TTC : CHF '+tot.toFixed(2)
-      });
+      await navigator.share({files:[pdfFile],title:'Facture '+(f.number||'')+' — '+(f.client_name||''),text:'Veuillez trouver ci-joint votre facture n° '+(f.number||'')+' — Total TTC : CHF '+tot.toFixed(2)});
       return;
     }catch(e){if(e.name==='AbortError')return;}
   }
-
-  // 4. Fallback: download PDF + open mailto
   const blobUrl=URL.createObjectURL(pdfBlob);
   const a=document.createElement('a');
   a.href=blobUrl;a.download=fname;document.body.appendChild(a);a.click();
   setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(blobUrl);},1000);
-
   const email=prompt('📧 Email du client (le PDF vient d\'être téléchargé — joignez-le à votre email) :','');
   if(!email||!email.trim())return;
   const subject=encodeURIComponent('Facture '+(f.number||'')+' – '+(f.client_name||''));
-  const body=encodeURIComponent(
-    'Bonjour,\n\nVeuillez trouver en pièce jointe votre facture n° '+(f.number||'')+'.\n\n'+
-    'Total TTC : CHF '+tot.toFixed(2)+'\nÉchéance : '+(f.due_date||'')+
-    '\n\nCordialement'
-  );
+  const body=encodeURIComponent('Bonjour,\n\nVeuillez trouver en pièce jointe votre facture n° '+(f.number||'')+'.\n\nTotal TTC : CHF '+tot.toFixed(2)+'\nÉchéance : '+(f.due_date||'')+'\n\nCordialement');
   window.open('mailto:'+email.trim()+'?subject='+subject+'&body='+body,'_blank');
 }
 
@@ -1998,7 +1560,6 @@ async function saveAndSendInvoiceByEmail(){
   try{
     const hash=window.location.hash||'';
     const isRecovery=hash.includes('type=recovery');
-
     const{data}=await sb.auth.getSession();
     if(isRecovery){
       state.session=data&&data.session?data.session:null;
@@ -2010,16 +1571,11 @@ async function saveAndSendInvoiceByEmail(){
     }else{
       state.page='landing';
     }
-  }catch(e){
-    state.page='landing';
-  }
+  }catch(e){state.page='landing';}
   render();
-
   sb.auth.onAuthStateChange(async(event,session)=>{
     state.session=session;
-    if(event==='PASSWORD_RECOVERY'){
-      state.page='reset';render();return;
-    }
+    if(event==='PASSWORD_RECOVERY'){state.page='reset';render();return;}
     if(event==='SIGNED_IN'&&session){
       await Promise.all([loadInvoices(),loadPlan()]);
       if(state.page==='auth'||state.page==='loading'||state.page==='forgot'||state.page==='landing'){
@@ -2027,16 +1583,11 @@ async function saveAndSendInvoiceByEmail(){
       }
       render();return;
     }
-    if(!session){state.page='landing';state.invoices=[];render();}
+    if(!session){state.page='landing';state.invoices=[];state.profile=null;render();}
   });
 })();
 </script>
-
-<!-- ===== CRISP LIVE CHAT =====
-     1. Va sur https://crisp.chat → crée un compte gratuit
-     2. Dans Settings > Website > Setup → copie ton Website ID
-     3. Remplace VOTRE_CRISP_WEBSITE_ID ci-dessous par ton vrai ID
-     ============================= -->
+<!-- ===== CRISP LIVE CHAT ===== -->
 <script>
 window.$crisp=[];window.CRISP_WEBSITE_ID="87cdfd2c-88f8-454a-b114-2ef3470a7f5c";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();
 </script>
