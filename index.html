@@ -1231,6 +1231,7 @@ function renderDashboard(){
       <div class="inv-right">
         <span class="inv-amount">${Number(inv.total||0).toFixed(2)} CHF</span>
         <span class="badge ${inv.status==='paid'?'badge-paid':'badge-pending'}" data-toggle-status="${inv.id}" title="Cliquer pour changer">${inv.status==='paid'?'Payée':'En attente'}</span>
+        <button class="btn-edit" data-preview="${inv.id}">Aperçu</button>
         ${isSoloPlan
           ? `<button class="btn-edit" data-edit="${inv.id}">Éditer</button>
              <button class="btn-del" data-del="${inv.id}">Supprimer</button>`
@@ -1318,6 +1319,7 @@ function renderEditor(){
       <div style="display:flex;gap:6px">
         <button id="tabEdit" style="padding:6px 14px;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;background:transparent;color:#888480">Éditer</button>
         <button id="tabPreview" style="padding:6px 14px;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;background:#c9a84c;color:#0b0b0c">Aperçu</button>
+        <button class="btn-gold-sm no-print" id="sharePdfInv">Partager PDF</button>
         <button class="btn-sm btn-outline no-print" id="printInv">Imprimer / PDF</button>
       </div>
     </nav>
@@ -1782,27 +1784,35 @@ function bindEvents(){
     window.open(STRIPE_LINK,'_blank','noopener,noreferrer');
   };
 
+  function openInvoiceFromDashboard(id,tab){
+    const inv=state.invoices.find(i=>String(i.id)===String(id));
+    if(!inv)return;
+    state.currentInvoice=inv;
+    state.form=JSON.parse(JSON.stringify({
+      number:inv.number,date:inv.date,due_date:inv.due_date,
+      client_name:inv.client_name||'',client_address:inv.client_address||'',
+      client_city:inv.client_city||'',client_vat:inv.client_vat||'',
+      vat_rate:Number(inv.vat_rate||8.1),
+      notes:inv.notes||'',
+      items:Array.isArray(inv.items)?inv.items:[{desc:'',qty:1,price:0}],
+      status:inv.status||'pending'
+    }));
+    state.editorTab=tab;
+    state.page='editor';
+    render();
+  }
+
+  document.querySelectorAll('[data-preview]').forEach(btn=>{
+    btn.onclick=()=>openInvoiceFromDashboard(btn.getAttribute('data-preview'),'preview');
+  });
+
   document.querySelectorAll('[data-edit]').forEach(btn=>{
     btn.onclick=()=>{
       // 🔒 Garde anti-contournement : édition réservée au plan Solo
       if(state.plan!=='solo'){
         state.showLimitModal=true;render();return;
       }
-      const id=btn.getAttribute('data-edit');
-      const inv=state.invoices.find(i=>String(i.id)===String(id));
-      if(inv){
-        state.currentInvoice=inv;
-        state.form=JSON.parse(JSON.stringify({
-          number:inv.number,date:inv.date,due_date:inv.due_date,
-          client_name:inv.client_name||'',client_address:inv.client_address||'',
-          client_city:inv.client_city||'',client_vat:inv.client_vat||'',
-          vat_rate:Number(inv.vat_rate||8.1),
-          notes:inv.notes||'',
-          items:Array.isArray(inv.items)?inv.items:[{desc:'',qty:1,price:0}],
-          status:inv.status||'pending'
-        }));
-        state.editorTab='edit';state.page='editor';render();
-      }
+      openInvoiceFromDashboard(btn.getAttribute('data-edit'),'edit');
     };
   });
 
@@ -1843,6 +1853,8 @@ function bindEvents(){
 
   const printInv=document.getElementById('printInv');
   if(printInv) printInv.onclick=()=>window.print();
+  const sharePdfInv=document.getElementById('sharePdfInv');
+  if(sharePdfInv) sharePdfInv.onclick=shareCurrentInvoicePdf;
 
   const addItem=document.getElementById('addItem');
   if(addItem) addItem.onclick=()=>{syncFormFromDOM();state.form.items.push({desc:'',qty:1,price:0});render();};
@@ -2108,17 +2120,7 @@ function openMailDraft(email,f,tot){
   window.location.href='mailto:'+email.trim()+'?subject='+subject+'&body='+body;
 }
 
-async function saveAndSendInvoiceByEmail(){
-  if(state.saving)return;
-  syncFormFromDOM();
-  const f=state.form;
-  if(!f.client_name||!f.client_name.trim()){alert('Le nom du client est requis');return;}
-  const isNew=!state.currentInvoice||!state.currentInvoice.id;
-  if(isNew&&!canCreateInvoice()){state.showLimitModal=true;state.page='dashboard';render();return;}
-  const{sub,vt,tot}=calcTotals(f);
-  const payload=buildInvoicePayload(f,sub,vt,tot);
-
-  // Generate the PDF before any network wait so iOS keeps the click gesture for sharing.
+async function sharePdfWithNativeOrSheet(f,sub,vt,tot,saveBeforeShare){
   const pdfBlob=generateInvoicePDF(f,sub,vt,tot);
   const fname='Facture-'+(f.number||'').replace(/[\/\\]/g,'-')+'.pdf';
   const pdfFile=new File([pdfBlob],fname,{type:'application/pdf'});
@@ -2130,10 +2132,11 @@ async function saveAndSendInvoiceByEmail(){
         title:'Facture '+(f.number||'')+' — '+(f.client_name||''),
         text:invoiceShareText(f,tot)
       });
-      state.saving=true;render();
-      await persistInvoicePayload(payload);
-      await loadInvoices();
-      state.saving=false;
+      if(saveBeforeShare){
+        state.saving=true;render();
+        await saveBeforeShare();
+        state.saving=false;
+      }
       state.page='dashboard';render();
       return;
     }catch(e){
@@ -2144,32 +2147,54 @@ async function saveAndSendInvoiceByEmail(){
   const action=await showInvoiceShareSheet();
   if(!action)return;
 
-  try{
-    state.saving=true;render();
-    await persistInvoicePayload(payload);
-    await loadInvoices();
-  }catch(e){
-    console.error(e);state.saving=false;
-    alert('Erreur lors de l\'enregistrement : '+(e.message||e));render();return;
+  if(saveBeforeShare){
+    try{
+      state.saving=true;render();
+      await saveBeforeShare();
+    }catch(e){
+      console.error(e);state.saving=false;
+      alert('Erreur lors de l\'enregistrement : '+(e.message||e));render();return;
+    }
   }
 
   state.saving=false;
   if(action==='download'){
     downloadPdfBlob(pdfBlob,fname);
-    state.page='dashboard';render();
-    return;
-  }
-
-  downloadPdfBlob(pdfBlob,fname);
-  if(action==='mail'){
-    const email=prompt('📧 Email du client :','');
-    if(email&&email.trim())openMailDraft(email,f,tot);
-  }else if(action==='whatsapp'){
-    window.open('https://wa.me/?text='+encodeURIComponent(invoiceShareText(f,tot)+'\n\nPDF enregistré : '+fname),'_blank','noopener,noreferrer');
-  }else if(action==='sms'){
-    window.location.href='sms:?&body='+encodeURIComponent(invoiceShareText(f,tot)+'\n\nPDF enregistré : '+fname);
+  }else{
+    downloadPdfBlob(pdfBlob,fname);
+    if(action==='mail'){
+      const email=prompt('📧 Email du client :','');
+      if(email&&email.trim())openMailDraft(email,f,tot);
+    }else if(action==='whatsapp'){
+      window.open('https://wa.me/?text='+encodeURIComponent(invoiceShareText(f,tot)+'\n\nPDF enregistré : '+fname),'_blank','noopener,noreferrer');
+    }else if(action==='sms'){
+      window.location.href='sms:?&body='+encodeURIComponent(invoiceShareText(f,tot)+'\n\nPDF enregistré : '+fname);
+    }
   }
   state.page='dashboard';render();
+}
+
+async function shareCurrentInvoicePdf(){
+  syncFormFromDOM();
+  const f=state.form;
+  if(!f.client_name||!f.client_name.trim()){alert('Le nom du client est requis');return;}
+  const{sub,vt,tot}=calcTotals(f);
+  await sharePdfWithNativeOrSheet(f,sub,vt,tot,null);
+}
+
+async function saveAndSendInvoiceByEmail(){
+  if(state.saving)return;
+  syncFormFromDOM();
+  const f=state.form;
+  if(!f.client_name||!f.client_name.trim()){alert('Le nom du client est requis');return;}
+  const isNew=!state.currentInvoice||!state.currentInvoice.id;
+  if(isNew&&!canCreateInvoice()){state.showLimitModal=true;state.page='dashboard';render();return;}
+  const{sub,vt,tot}=calcTotals(f);
+  const payload=buildInvoicePayload(f,sub,vt,tot);
+  await sharePdfWithNativeOrSheet(f,sub,vt,tot,async()=>{
+    await persistInvoicePayload(payload);
+    await loadInvoices();
+  });
 }
 
 /* ---------- INIT ---------- */
