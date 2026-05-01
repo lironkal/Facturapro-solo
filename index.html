@@ -289,6 +289,7 @@ const SUPABASE_KEY='sb_publishable_WPpOH1UEWHoBpzRs9vpkQA_gkAEqhVq';
 const STRIPE_LINK='https://buy.stripe.com/14A8wHfImevTdMvauP1kA00';
 // Lien annuel : 79 CHF/an
 const STRIPE_LINK_ANNUAL='https://buy.stripe.com/cNi7sD3ZE73r9wf1Yj1kA03';
+const INVOICE_EMAIL_FUNCTION='send-invoice-email';
 const COMPANY_NAME='Votre entreprise';
 const COMPANY_ADDRESS='Adresse complète';
 const COMPANY_ZIP='1000';
@@ -2046,6 +2047,30 @@ function canSharePdfFile(file){
   return !!(navigator.share&&file);
 }
 
+function blobToBase64(blob){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(String(reader.result||'').split(',')[1]||'');
+    reader.onerror=()=>reject(reader.error||new Error('Lecture PDF impossible'));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function sendInvoiceEmailViaSupabase(to,f,tot,fname,pdfBlob){
+  const pdfBase64=await blobToBase64(pdfBlob);
+  const subject='Facture '+(f.number||'')+' – '+(f.client_name||'');
+  const text=
+    'Bonjour,\n\nVeuillez trouver ci-joint votre facture n° '+(f.number||'')+'.\n\n'+
+    'Total TTC : CHF '+tot.toFixed(2)+'\nÉchéance : '+(f.due_date||'')+
+    '\n\nCordialement';
+  const{data,error}=await sb.functions.invoke(INVOICE_EMAIL_FUNCTION,{
+    body:{to,subject,text,filename:fname,pdfBase64}
+  });
+  if(error)throw error;
+  if(data&&data.error)throw new Error(data.error);
+  return data;
+}
+
 async function saveAndSendInvoiceByEmail(){
   if(state.saving)return;
   syncFormFromDOM();
@@ -2060,50 +2085,39 @@ async function saveAndSendInvoiceByEmail(){
   const pdfBlob=generateInvoicePDF(f,sub,vt,tot);
   const fname='Facture-'+(f.number||'').replace(/[\/\\]/g,'-')+'.pdf';
   const pdfFile=new File([pdfBlob],fname,{type:'application/pdf'});
+  const email=prompt('📧 Email du client :','');
+  if(!email||!email.trim())return;
+
+  try{
+    state.saving=true;render();
+    await persistInvoicePayload(payload);
+    await sendInvoiceEmailViaSupabase(email.trim(),f,tot,fname,pdfBlob);
+    await loadInvoices();
+    state.saving=false;
+    alert('✅ Facture envoyée avec le PDF en pièce jointe.');
+    state.page='dashboard';render();
+    return;
+  }catch(e){
+    console.error(e);state.saving=false;render();
+  }
+
+  // Fallback: if the Supabase email function is not deployed yet.
+  const blobUrl=URL.createObjectURL(pdfBlob);
+  const a=document.createElement('a');
+  a.href=blobUrl;a.download=fname;document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(blobUrl);},1000);
 
   if(canSharePdfFile(pdfFile)){
     try{
       await navigator.share({
         files:[pdfFile],
         title:'Facture '+(f.number||'')+' — '+(f.client_name||''),
-        text:'Veuillez trouver ci-joint votre facture n° '+(f.number||'')+' — Total TTC : CHF '+tot.toFixed(2)
+        text:'La fonction Supabase d’envoi email n’est pas encore active. Voici le PDF à envoyer.'
       });
-      state.saving=true;render();
-      await persistInvoicePayload(payload);
-      await loadInvoices();
-      state.saving=false;
-      state.page='dashboard';render();
       return;
-    }catch(e){if(e.name==='AbortError')return;}
+    }catch(_){}
   }
-
-  // Fallback: mailto cannot attach files. Save, download, then open the mail app with clear instructions.
-  try{
-    state.saving=true;render();
-    await persistInvoicePayload(payload);
-    await loadInvoices();
-    state.saving=false;render();
-  }catch(e){
-    console.error(e);state.saving=false;
-    alert('Erreur lors de l\'enregistrement : '+(e.message||e));render();return;
-  }
-
-  const blobUrl=URL.createObjectURL(pdfBlob);
-  const a=document.createElement('a');
-  a.href=blobUrl;a.download=fname;document.body.appendChild(a);a.click();
-  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(blobUrl);},1000);
-
-  alert('Ton navigateur ne permet pas d’ajouter automatiquement le PDF dans Mail. Le PDF va être téléchargé : joins-le manuellement au mail. Sur iPhone, ouvre cette page dans Safari puis choisis Mail dans la feuille de partage pour avoir la pièce jointe automatiquement.');
-
-  const email=prompt('📧 Email du client (le PDF vient d\'être téléchargé — joignez-le à votre email) :','');
-  if(!email||!email.trim())return;
-  const subject=encodeURIComponent('Facture '+(f.number||'')+' – '+(f.client_name||''));
-  const body=encodeURIComponent(
-    'Bonjour,\n\nVeuillez trouver en pièce jointe votre facture n° '+(f.number||'')+'.\n\n'+
-    'Total TTC : CHF '+tot.toFixed(2)+'\nÉchéance : '+(f.due_date||'')+
-    '\n\nCordialement'
-  );
-  window.location.href='mailto:'+email.trim()+'?subject='+subject+'&body='+body;
+  alert('Le PDF a été téléchargé, mais l’envoi automatique par email nécessite la fonction Supabase "send-invoice-email".');
 }
 
 /* ---------- INIT ---------- */
