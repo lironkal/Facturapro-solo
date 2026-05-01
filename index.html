@@ -10,6 +10,7 @@
 <script src="https://js.stripe.com/v3/"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swissqrbill@3.2.3/lib/browser/bundle/index.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -138,6 +139,11 @@ html,body{background:#0b0b0c;color:var(--tx);font-family:'DM Sans',sans-serif;mi
 .qr-title{font-size:9px;letter-spacing:3px;color:#c9a84c;text-transform:uppercase;font-weight:600;margin-bottom:8px}
 .qr-info{font-size:12px;color:#3a3028;line-height:2;flex:1;min-width:160px}
 .qr-notes{font-size:11px;color:#3a3028;line-height:1.8;padding-left:20px;white-space:pre-line;border-left:1px solid #c9b8a4;margin-left:4px;flex:1;min-width:160px}
+.swiss-qr-section{border:1px solid #e0d8cc;border-radius:7px;background:#fff;margin-top:28px;overflow:hidden}
+.swiss-qr-svg{width:100%;background:#fff}
+.swiss-qr-svg svg{width:100%;height:auto;display:block}
+.swiss-qr-meta{padding:14px 18px;background:#f2ede4;border-top:1px solid #e0d8cc;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:12px;color:#3a3028;line-height:1.7}
+.swiss-qr-meta strong{color:#1c1810}
 .inv-footer{padding:16px 48px;background:#ece7de;text-align:center;font-size:9px;letter-spacing:3px;color:#5a4e48;text-transform:uppercase}
 @media print{.no-print{display:none!important}body{background:white}.invoice-doc{box-shadow:none;border-radius:0}}
 @media (max-width:640px){
@@ -283,6 +289,11 @@ const SUPABASE_KEY='sb_publishable_WPpOH1UEWHoBpzRs9vpkQA_gkAEqhVq';
 const STRIPE_LINK='https://buy.stripe.com/14A8wHfImevTdMvauP1kA00';
 // Lien annuel : 79 CHF/an
 const STRIPE_LINK_ANNUAL='https://buy.stripe.com/cNi7sD3ZE73r9wf1Yj1kA03';
+const COMPANY_NAME='Votre entreprise';
+const COMPANY_ADDRESS='Adresse complète';
+const COMPANY_ZIP='1000';
+const COMPANY_CITY='Lausanne';
+const COMPANY_COUNTRY='CH';
 // 📩 Email de réception des messages de contact
 const CONTACT_EMAIL='Liron.kallaba@gmail.com';
 // 🔧 OPTIONNEL : pour envoyer les messages SANS ouvrir l'app Mail du client.
@@ -649,6 +660,90 @@ function calcTotals(f){
   const sub=f.items.reduce((s,x)=>s+Number(x.qty||0)*Number(x.price||0),0);
   const vt=sub*Number(f.vat_rate||0)/100;
   return{sub,vt,tot:sub+vt};
+}
+function extractIban(text){
+  const match=String(text||'').match(/CH\d{2}(?:\s?[A-Z0-9]){17}/i);
+  return match?match[0].replace(/\s/g,'').toUpperCase():'CH0000000000000000000';
+}
+function parseCityZip(value){
+  const raw=String(value||'').trim();
+  const match=raw.match(/^(\d{4})\s+(.+)$/);
+  return match?{zip:match[1],city:match[2]}:{zip:'',city:raw};
+}
+function buildSwissQrBillData(f,tot){
+  const debtorCity=parseCityZip(f.client_city);
+  return{
+    amount:Number(tot.toFixed(2)),
+    currency:'CHF',
+    creditor:{
+      account:extractIban(f.notes),
+      name:COMPANY_NAME,
+      address:COMPANY_ADDRESS,
+      zip:COMPANY_ZIP,
+      city:COMPANY_CITY,
+      country:COMPANY_COUNTRY
+    },
+    debtor:{
+      name:f.client_name||'',
+      address:f.client_address||'',
+      zip:debtorCity.zip,
+      city:debtorCity.city,
+      country:'CH'
+    },
+    message:f.number?'Facture '+f.number:'Facture'
+  };
+}
+function buildSwissQrPayload(f,tot){
+  const data=buildSwissQrBillData(f,tot);
+  const creditor=data.creditor;
+  const debtor=data.debtor;
+  return[
+    'SPC','0200','1',
+    creditor.account,'K',
+    creditor.name,creditor.address,'',creditor.zip,creditor.city,creditor.country,
+    '', '', '', '', '', '', '',
+    Number(tot||0).toFixed(2),'CHF',
+    debtor.name,debtor.address,'',debtor.zip,debtor.city,debtor.country,
+    'NON','','',data.message,'EPD'
+  ].join('\n');
+}
+function renderSwissQrBill(f,tot){
+  try{
+    const lib=window.SwissQRBill||window.swissqrbill;
+    const Ctor=lib&&(lib.SVG||lib.SwissQRBill||lib.default||lib);
+    if(!Ctor)throw new Error('swissqrbill unavailable');
+    const qrData=buildSwissQrBillData(f,tot);
+    let qrBill;
+    try{qrBill=new Ctor(qrData,{language:'FR'});}
+    catch(_){qrBill=new Ctor(qrData);}
+    const element=qrBill.element||qrBill.svg||qrBill;
+    const svg=typeof element==='string'?element:(element&&element.outerHTML);
+    if(!svg)throw new Error('swissqrbill SVG unavailable');
+    return `<div class="swiss-qr-section">
+      <div class="swiss-qr-svg">${svg}</div>
+      <div class="swiss-qr-meta">
+        <span>IBAN : <strong>${esc(extractIban(f.notes))}</strong></span>
+        <span>Montant : <strong>${tot.toFixed(2)} CHF</strong></span>
+        <span>Échéance : <strong>${fmtDate(f.due_date)}</strong></span>
+      </div>
+    </div>`;
+  }catch(e){
+    const payload=buildSwissQrPayload(f,tot);
+    return `<div class="qr-box">
+      <div style="flex-shrink:0">
+        <div class="qr-title">QR-Facture Suisse</div>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(payload)}" width="110" height="110" style="border-radius:4px;display:block" alt="QR Code"/>
+      </div>
+      <div class="qr-info">
+        <div class="qr-title">Informations de paiement</div>
+        Émise le ${fmtDate(f.date)}<br>
+        À régler avant le ${fmtDate(f.due_date)}<br>
+        Montant : <strong>${tot.toFixed(2)} CHF</strong><br>
+        IBAN : <strong>${esc(extractIban(f.notes))}</strong>
+      </div>
+      <div class="qr-notes">${esc(f.notes||'')}</div>
+    </div>`;
+  }
 }
 function generateInvoicePDF(f,sub,vt,tot){
   const {jsPDF}=window.jspdf;
@@ -1323,8 +1418,8 @@ function renderInvoiceDoc(f,sub,vt,tot){
       <div class="parties">
         <div>
           <div class="party-lbl">Émetteur</div>
-          <div class="party-name">Votre entreprise</div>
-          <div class="party-info">Adresse complète\n1000 Lausanne\nSuisse</div>
+          <div class="party-name">${esc(COMPANY_NAME)}</div>
+          <div class="party-info">${esc(COMPANY_ADDRESS)}\n${esc(COMPANY_ZIP+' '+COMPANY_CITY)}\nSuisse</div>
         </div>
         <div>
           <div class="party-lbl">Client</div>
@@ -1346,19 +1441,7 @@ function renderInvoiceDoc(f,sub,vt,tot){
         </div>
       </div>
 
-      <div class="qr-box">
-        <div style="flex-shrink:0">
-          <div class="qr-title">QR-Facture Suisse</div>
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent('SPC\n0200\n1\n' + (f.notes||'').match(/CH[\w\s]*/)?.[0]?.replace(/\s/g,'')||'CH0000000000000000000' + '\nK\nVotre entreprise\n1000 Lausanne\nCH\n' + tot.toFixed(2) + '\nCHF\n\n\n\n\n\n\nNON\n\n' + f.number)}" width="110" height="110" style="border-radius:4px;display:block" alt="QR Code" onerror="this.style.display='none'"/>
-        </div>
-        <div class="qr-info">
-          <div class="qr-title">Informations de paiement</div>
-          Émise le ${fmtDate(f.date)}<br>
-          À régler avant le ${fmtDate(f.due_date)}<br>
-          Montant : <strong>${tot.toFixed(2)} CHF</strong>
-        </div>
-        <div class="qr-notes">${esc(f.notes||'')}</div>
-      </div>
+      ${renderSwissQrBill(f,tot)}
     </div>
     <div class="inv-footer">Merci de votre confiance</div>
   </div>`;
@@ -1722,7 +1805,7 @@ function bindEvents(){
       }
       if(!confirm('Supprimer cette facture ?'))return;
       const id=btn.getAttribute('data-del');
-      await sb.from('invoices').delete().eq('id',id);
+      await sb.from('invoices').delete().eq('id',id).eq('user_id',state.session.user.id);
       await loadInvoices();render();
     };
   });
@@ -1733,7 +1816,7 @@ function bindEvents(){
       const inv=state.invoices.find(i=>String(i.id)===String(id));
       if(!inv)return;
       const next=inv.status==='paid'?'pending':'paid';
-      await sb.from('invoices').update({status:next}).eq('id',id);
+      await sb.from('invoices').update({status:next}).eq('id',id).eq('user_id',state.session.user.id);
       await loadInvoices();render();
     };
   });
@@ -1846,9 +1929,22 @@ function syncFormFromDOM(){
 /* ---------- DATA: LOAD / SAVE ---------- */
 async function loadInvoices(){
   if(!state.session)return;
-  const{data,error}=await sb.from('invoices').select('*').order('created_at',{ascending:false});
+  const{data,error}=await sb.from('invoices').select('*').eq('user_id',state.session.user.id).order('created_at',{ascending:false});
   if(error){console.error(error);return;}
   state.invoices=data||[];
+}
+
+async function ensureProfile(){
+  if(!state.session)return;
+  const user=state.session.user;
+  const payload={
+    id:user.id,
+    email:user.email||null,
+    plan:'free',
+    updated_at:new Date().toISOString()
+  };
+  const{error}=await sb.from('profiles').upsert(payload,{onConflict:'id',ignoreDuplicates:true});
+  if(error)console.error('ensureProfile error',error);
 }
 
 // FIX: lit depuis 'profiles' (colonne 'id') au lieu de 'user_plans' (colonne 'user_id')
@@ -1907,7 +2003,7 @@ async function saveInvoice(){
 
   try{
     if(state.currentInvoice&&state.currentInvoice.id){
-      const{error}=await sb.from('invoices').update(payload).eq('id',state.currentInvoice.id);
+      const{error}=await sb.from('invoices').update(payload).eq('id',state.currentInvoice.id).eq('user_id',state.session.user.id);
       if(error)throw error;
     }else{
       const{error}=await sb.from('invoices').insert(payload);
@@ -1945,7 +2041,7 @@ async function saveAndSendInvoiceByEmail(){
   };
   try{
     if(state.currentInvoice&&state.currentInvoice.id){
-      const{error}=await sb.from('invoices').update(payload).eq('id',state.currentInvoice.id);
+      const{error}=await sb.from('invoices').update(payload).eq('id',state.currentInvoice.id).eq('user_id',state.session.user.id);
       if(error)throw error;
     }else{
       const{error}=await sb.from('invoices').insert(payload);
@@ -2005,6 +2101,7 @@ async function saveAndSendInvoiceByEmail(){
       state.page='reset';
     }else if(data&&data.session){
       state.session=data.session;
+      await ensureProfile();
       await Promise.all([loadInvoices(),loadPlan()]);
       state.page='dashboard';
     }else{
@@ -2021,6 +2118,7 @@ async function saveAndSendInvoiceByEmail(){
       state.page='reset';render();return;
     }
     if(event==='SIGNED_IN'&&session){
+      await ensureProfile();
       await Promise.all([loadInvoices(),loadPlan()]);
       if(state.page==='auth'||state.page==='loading'||state.page==='forgot'||state.page==='landing'){
         state.page='dashboard';state.msg='';
