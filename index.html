@@ -2109,7 +2109,7 @@ function showInvoiceShareSheet(){
     overlay.id='invoiceShareOverlay';
     overlay.innerHTML=`<div class="share-sheet">
       <div class="share-title">Partager la facture</div>
-      <div class="share-sub">Choisis une option. Mail, SMS et WhatsApp recevront un lien sécurisé vers le PDF.</div>
+      <div class="share-sub">Choisis une option. Mail, SMS et WhatsApp recevront un lien sécurisé vers le PDF. Fichier télécharge le PDF.</div>
       <div class="share-grid">
         <button class="share-option" data-share-action="mail"><span class="share-ico">@</span><span>Mail</span></button>
         <button class="share-option" data-share-action="sms"><span class="share-ico">SMS</span><span>SMS</span></button>
@@ -2143,26 +2143,6 @@ function openMailDraft(email,f,tot,url){
 async function sharePdfWithNativeOrSheet(f,sub,vt,tot,saveBeforeShare){
   const pdfBlob=generateInvoicePDF(f,sub,vt,tot);
   const fname='Facture-'+(f.number||'').replace(/[\/\\]/g,'-')+'.pdf';
-  const pdfFile=new File([pdfBlob],fname,{type:'application/pdf'});
-
-  if(canSharePdfFile(pdfFile)){
-    try{
-      await navigator.share({
-        files:[pdfFile],
-        title:'Facture '+(f.number||'')+' — '+(f.client_name||''),
-        text:invoiceShareText(f,tot)
-      });
-      if(saveBeforeShare){
-        state.saving=true;render();
-        await saveBeforeShare();
-        state.saving=false;
-      }
-      state.page='dashboard';render();
-      return;
-    }catch(e){
-      if(e&&e.name==='AbortError')return;
-    }
-  }
 
   const action=await showInvoiceShareSheet();
   if(!action)return;
