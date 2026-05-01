@@ -10,6 +10,7 @@
 <script src="https://js.stripe.com/v3/"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/swissqrbill@3.2.3/lib/browser/bundle/index.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
 <style>
@@ -754,6 +755,30 @@ function renderSwissQrBill(f,tot){
     </div>`;
   }
 }
+function makeQrPngDataUrl(payload,size=360){
+  if(!window.qrcode)return '';
+  const qr=window.qrcode(0,'M');
+  qr.addData(payload);
+  qr.make();
+  const count=qr.getModuleCount();
+  const canvas=document.createElement('canvas');
+  canvas.width=size;
+  canvas.height=size;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#fff';
+  ctx.fillRect(0,0,size,size);
+  const quiet=4;
+  const cell=size/(count+quiet*2);
+  ctx.fillStyle='#000';
+  for(let r=0;r<count;r++){
+    for(let c=0;c<count;c++){
+      if(qr.isDark(r,c)){
+        ctx.fillRect(Math.round((c+quiet)*cell),Math.round((r+quiet)*cell),Math.ceil(cell),Math.ceil(cell));
+      }
+    }
+  }
+  return canvas.toDataURL('image/png');
+}
 function generateInvoicePDF(f,sub,vt,tot){
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({unit:'mm',format:'a4'});
@@ -865,6 +890,28 @@ function generateInvoicePDF(f,sub,vt,tot){
     doc.text(lines,M,y);
     y+=lines.length*5;
   }
+
+  // ── QR-facture ───────────────────────────────────────
+  if(y>212)y=212;
+  const qrPayload=buildSwissQrPayload(f,tot);
+  const qrDataUrl=makeQrPngDataUrl(qrPayload);
+  doc.setDrawColor(224,216,204);
+  doc.setFillColor(248,245,239);
+  doc.roundedRect(M,y+4,W-2*M,42,2,2,'FD');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8);
+  doc.setTextColor(212,169,78);
+  doc.text('QR-FACTURE SUISSE',M+5,y+12);
+  if(qrDataUrl){
+    doc.addImage(qrDataUrl,'PNG',M+5,y+16,25,25);
+  }
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  doc.setTextColor(70,70,70);
+  doc.text('IBAN : '+extractIban(f.notes),M+36,y+19);
+  doc.text('Montant : '+tot.toFixed(2)+' CHF',M+36,y+25);
+  doc.text('Échéance : '+(f.due_date||''),M+36,y+31);
+  doc.text('Référence : '+(f.number||''),M+36,y+37);
 
   // ── Footer ────────────────────────────────────────────
   doc.setFillColor(245,245,245);
