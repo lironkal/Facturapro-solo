@@ -99,6 +99,15 @@ html,body{background:#0b0b0c;color:var(--tx);font-family:'DM Sans',sans-serif;mi
 .btn-save:disabled{opacity:.5;cursor:not-allowed}
 .btn-email{flex:1;padding:14px;background:transparent;color:var(--g);border:1.5px solid var(--g);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:.3s}
 .btn-email:hover{background:rgba(212,169,78,.12);box-shadow:0 4px 18px rgba(201,168,76,.25);transform:translateY(-1px)}
+.share-overlay{position:fixed;inset:0;background:rgba(0,0,0,.68);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:flex-end;justify-content:center;padding:18px}
+.share-sheet{width:100%;max-width:420px;background:var(--s1);border:1px solid var(--bd);border-radius:18px;padding:18px;box-shadow:0 20px 80px rgba(0,0,0,.5)}
+.share-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--tx);margin-bottom:4px;text-align:center}
+.share-sub{font-size:12px;color:var(--m2);line-height:1.5;text-align:center;margin-bottom:16px}
+.share-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.share-option{background:var(--s2);border:1px solid var(--bd);border-radius:12px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:7px;transition:.2s;min-height:78px}
+.share-option:hover{border-color:var(--g);background:rgba(201,168,76,.1)}
+.share-ico{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#d4a94e,#9a6e18);color:#0b0b0c;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.share-cancel{width:100%;padding:12px;background:transparent;border:1px solid var(--bd);border-radius:12px;color:var(--m2);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer}
 .pricing-wrap{min-height:100vh;background:var(--bg);padding:60px 20px}
 .pricing-inner{max-width:700px;margin:0 auto;text-align:center}
 .pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:48px}
@@ -2046,6 +2055,10 @@ function canSharePdfFile(file){
   return !!(navigator.share&&file);
 }
 
+function invoiceShareText(f,tot){
+  return 'Veuillez trouver ci-joint votre facture n° '+(f.number||'')+' — Total TTC : CHF '+tot.toFixed(2);
+}
+
 function downloadPdfBlob(pdfBlob,fname){
   const blobUrl=URL.createObjectURL(pdfBlob);
   const a=document.createElement('a');
@@ -2056,14 +2069,43 @@ function downloadPdfBlob(pdfBlob,fname){
   setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(blobUrl);},1000);
 }
 
-async function chooseInvoicePdfAction(){
-  const answer=prompt('Que veux-tu faire avec la facture PDF ?\n\n1 = Envoyer par mail\n2 = Enregistrer dans fichiers\n\nTape 1 ou 2 :','1');
-  if(answer===null)return null;
-  const choice=String(answer).trim().toLowerCase();
-  if(choice==='1'||choice.includes('mail')||choice.includes('envoyer'))return 'mail';
-  if(choice==='2'||choice.includes('fichier')||choice.includes('enregistrer'))return 'download';
-  alert('Choix non reconnu. Tape 1 pour envoyer par mail ou 2 pour enregistrer le PDF.');
-  return chooseInvoicePdfAction();
+function showInvoiceShareSheet(){
+  return new Promise(resolve=>{
+    const old=document.getElementById('invoiceShareOverlay');
+    if(old)old.remove();
+    const overlay=document.createElement('div');
+    overlay.className='share-overlay';
+    overlay.id='invoiceShareOverlay';
+    overlay.innerHTML=`<div class="share-sheet">
+      <div class="share-title">Partager la facture</div>
+      <div class="share-sub">Choisis une option. Si l’app ne peut pas recevoir la pièce jointe, le PDF sera enregistré pour l’ajouter manuellement.</div>
+      <div class="share-grid">
+        <button class="share-option" data-share-action="mail"><span class="share-ico">@</span><span>Mail</span></button>
+        <button class="share-option" data-share-action="sms"><span class="share-ico">SMS</span><span>SMS</span></button>
+        <button class="share-option" data-share-action="whatsapp"><span class="share-ico">WA</span><span>WhatsApp</span></button>
+        <button class="share-option" data-share-action="download"><span class="share-ico">↓</span><span>Fichier</span></button>
+      </div>
+      <button class="share-cancel" data-share-action="cancel">Annuler</button>
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.onclick=e=>{
+      const btn=e.target.closest('[data-share-action]');
+      if(!btn)return;
+      const action=btn.getAttribute('data-share-action');
+      overlay.remove();
+      resolve(action==='cancel'?null:action);
+    };
+  });
+}
+
+function openMailDraft(email,f,tot){
+  const subject=encodeURIComponent('Facture '+(f.number||'')+' – '+(f.client_name||''));
+  const body=encodeURIComponent(
+    'Bonjour,\n\nVeuillez trouver ci-joint votre facture n° '+(f.number||'')+'.\n\n'+
+    'Total TTC : CHF '+tot.toFixed(2)+'\nÉchéance : '+(f.due_date||'')+
+    '\n\nCordialement'
+  );
+  window.location.href='mailto:'+email.trim()+'?subject='+subject+'&body='+body;
 }
 
 async function saveAndSendInvoiceByEmail(){
@@ -2080,7 +2122,26 @@ async function saveAndSendInvoiceByEmail(){
   const pdfBlob=generateInvoicePDF(f,sub,vt,tot);
   const fname='Facture-'+(f.number||'').replace(/[\/\\]/g,'-')+'.pdf';
   const pdfFile=new File([pdfBlob],fname,{type:'application/pdf'});
-  const action=await chooseInvoicePdfAction();
+
+  if(canSharePdfFile(pdfFile)){
+    try{
+      await navigator.share({
+        files:[pdfFile],
+        title:'Facture '+(f.number||'')+' — '+(f.client_name||''),
+        text:invoiceShareText(f,tot)
+      });
+      state.saving=true;render();
+      await persistInvoicePayload(payload);
+      await loadInvoices();
+      state.saving=false;
+      state.page='dashboard';render();
+      return;
+    }catch(e){
+      if(e&&e.name==='AbortError')return;
+    }
+  }
+
+  const action=await showInvoiceShareSheet();
   if(!action)return;
 
   try{
@@ -2099,28 +2160,14 @@ async function saveAndSendInvoiceByEmail(){
     return;
   }
 
-  if(action==='mail'&&canSharePdfFile(pdfFile)){
-    try{
-      await navigator.share({
-        files:[pdfFile],
-        title:'Facture '+(f.number||'')+' — '+(f.client_name||''),
-        text:'Veuillez trouver ci-joint votre facture n° '+(f.number||'')+' — Total TTC : CHF '+tot.toFixed(2)
-      });
-      state.page='dashboard';render();
-      return;
-    }catch(_){}
-  }
-
   downloadPdfBlob(pdfBlob,fname);
-  const email=prompt('📧 Email du client (le PDF vient d’être enregistré, joins-le au mail) :','');
-  if(email&&email.trim()){
-    const subject=encodeURIComponent('Facture '+(f.number||'')+' – '+(f.client_name||''));
-    const body=encodeURIComponent(
-      'Bonjour,\n\nVeuillez trouver ci-joint votre facture n° '+(f.number||'')+'.\n\n'+
-      'Total TTC : CHF '+tot.toFixed(2)+'\nÉchéance : '+(f.due_date||'')+
-      '\n\nCordialement'
-    );
-    window.location.href='mailto:'+email.trim()+'?subject='+subject+'&body='+body;
+  if(action==='mail'){
+    const email=prompt('📧 Email du client :','');
+    if(email&&email.trim())openMailDraft(email,f,tot);
+  }else if(action==='whatsapp'){
+    window.open('https://wa.me/?text='+encodeURIComponent(invoiceShareText(f,tot)+'\n\nPDF enregistré : '+fname),'_blank','noopener,noreferrer');
+  }else if(action==='sms'){
+    window.location.href='sms:?&body='+encodeURIComponent(invoiceShareText(f,tot)+'\n\nPDF enregistré : '+fname);
   }
   state.page='dashboard';render();
 }
