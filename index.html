@@ -2071,6 +2071,10 @@ function invoiceShareText(f,tot){
   return 'Veuillez trouver ci-joint votre facture n° '+(f.number||'')+' — Total TTC : CHF '+tot.toFixed(2);
 }
 
+function invoiceShareTextWithUrl(f,tot,url){
+  return invoiceShareText(f,tot)+'\n\nTélécharger le PDF : '+url;
+}
+
 function downloadPdfBlob(pdfBlob,fname){
   const blobUrl=URL.createObjectURL(pdfBlob);
   const a=document.createElement('a');
@@ -2079,6 +2083,21 @@ function downloadPdfBlob(pdfBlob,fname){
   document.body.appendChild(a);
   a.click();
   setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(blobUrl);},1000);
+}
+
+async function uploadInvoicePdfAndGetUrl(pdfBlob,fname){
+  if(!state.session)throw new Error('Utilisateur non connecté.');
+  const safeName=fname.replace(/[^a-zA-Z0-9._-]/g,'-');
+  const path=state.session.user.id+'/'+Date.now()+'-'+safeName;
+  const{error:uploadError}=await sb.storage
+    .from('invoice-pdfs')
+    .upload(path,pdfBlob,{contentType:'application/pdf',upsert:true});
+  if(uploadError)throw uploadError;
+  const{data,error:urlError}=await sb.storage
+    .from('invoice-pdfs')
+    .createSignedUrl(path,60*60*24*30);
+  if(urlError)throw urlError;
+  return data.signedUrl;
 }
 
 function showInvoiceShareSheet(){
@@ -2090,7 +2109,7 @@ function showInvoiceShareSheet(){
     overlay.id='invoiceShareOverlay';
     overlay.innerHTML=`<div class="share-sheet">
       <div class="share-title">Partager la facture</div>
-      <div class="share-sub">Choisis une option. Si l’app ne peut pas recevoir la pièce jointe, le PDF sera enregistré pour l’ajouter manuellement.</div>
+      <div class="share-sub">Choisis une option. Mail, SMS et WhatsApp recevront un lien sécurisé vers le PDF.</div>
       <div class="share-grid">
         <button class="share-option" data-share-action="mail"><span class="share-ico">@</span><span>Mail</span></button>
         <button class="share-option" data-share-action="sms"><span class="share-ico">SMS</span><span>SMS</span></button>
@@ -2110,11 +2129,12 @@ function showInvoiceShareSheet(){
   });
 }
 
-function openMailDraft(email,f,tot){
+function openMailDraft(email,f,tot,url){
   const subject=encodeURIComponent('Facture '+(f.number||'')+' – '+(f.client_name||''));
   const body=encodeURIComponent(
     'Bonjour,\n\nVeuillez trouver ci-joint votre facture n° '+(f.number||'')+'.\n\n'+
     'Total TTC : CHF '+tot.toFixed(2)+'\nÉchéance : '+(f.due_date||'')+
+    (url?'\n\nTélécharger le PDF : '+url:'')+
     '\n\nCordialement'
   );
   window.location.href='mailto:'+email.trim()+'?subject='+subject+'&body='+body;
@@ -2161,14 +2181,25 @@ async function sharePdfWithNativeOrSheet(f,sub,vt,tot,saveBeforeShare){
   if(action==='download'){
     downloadPdfBlob(pdfBlob,fname);
   }else{
-    downloadPdfBlob(pdfBlob,fname);
+    let pdfUrl='';
+    try{
+      state.saving=true;render();
+      pdfUrl=await uploadInvoicePdfAndGetUrl(pdfBlob,fname);
+      state.saving=false;
+    }catch(e){
+      console.error(e);state.saving=false;
+      downloadPdfBlob(pdfBlob,fname);
+      alert('Le PDF a été enregistré, mais le lien de partage n’a pas pu être créé. Vérifie que le bucket Supabase Storage "invoice-pdfs" existe.');
+      state.page='dashboard';render();
+      return;
+    }
     if(action==='mail'){
       const email=prompt('📧 Email du client :','');
-      if(email&&email.trim())openMailDraft(email,f,tot);
+      if(email&&email.trim())openMailDraft(email,f,tot,pdfUrl);
     }else if(action==='whatsapp'){
-      window.open('https://wa.me/?text='+encodeURIComponent(invoiceShareText(f,tot)+'\n\nPDF enregistré : '+fname),'_blank','noopener,noreferrer');
+      window.open('https://wa.me/?text='+encodeURIComponent(invoiceShareTextWithUrl(f,tot,pdfUrl)),'_blank','noopener,noreferrer');
     }else if(action==='sms'){
-      window.location.href='sms:?&body='+encodeURIComponent(invoiceShareText(f,tot)+'\n\nPDF enregistré : '+fname);
+      window.location.href='sms:?&body='+encodeURIComponent(invoiceShareTextWithUrl(f,tot,pdfUrl));
     }
   }
   state.page='dashboard';render();
