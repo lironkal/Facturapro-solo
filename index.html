@@ -2043,7 +2043,7 @@ async function persistInvoicePayload(payload){
 }
 
 function canSharePdfFile(file){
-  return !!(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]})));
+  return !!(navigator.share&&file);
 }
 
 async function saveAndSendInvoiceByEmail(){
@@ -2077,7 +2077,7 @@ async function saveAndSendInvoiceByEmail(){
     }catch(e){if(e.name==='AbortError')return;}
   }
 
-  // Fallback: save, download the PDF, then open the mail app with the message ready.
+  // Fallback: mailto cannot attach files. Save, download, then open the mail app with clear instructions.
   try{
     state.saving=true;render();
     await persistInvoicePayload(payload);
@@ -2092,6 +2092,8 @@ async function saveAndSendInvoiceByEmail(){
   const a=document.createElement('a');
   a.href=blobUrl;a.download=fname;document.body.appendChild(a);a.click();
   setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(blobUrl);},1000);
+
+  alert('Ton navigateur ne permet pas d’ajouter automatiquement le PDF dans Mail. Le PDF va être téléchargé : joins-le manuellement au mail. Sur iPhone, ouvre cette page dans Safari puis choisis Mail dans la feuille de partage pour avoir la pièce jointe automatiquement.');
 
   const email=prompt('📧 Email du client (le PDF vient d\'être téléchargé — joignez-le à votre email) :','');
   if(!email||!email.trim())return;
