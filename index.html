@@ -775,7 +775,51 @@ function drawQrCodeOnPdf(doc,payload,x,y,size){
   }
   return true;
 }
-function generateInvoicePDF(f,sub,vt,tot){
+function svgToPngDataUrl(svgString,widthMm,heightMm){
+  return new Promise((resolve,reject)=>{
+    try{
+      const dpi=300,mmToPx=dpi/25.4;
+      const W=Math.round(widthMm*mmToPx),H=Math.round(heightMm*mmToPx);
+      const blob=new Blob([svgString],{type:'image/svg+xml;charset=utf-8'});
+      const url=URL.createObjectURL(blob);
+      const img=new Image();
+      img.onload=()=>{
+        const c=document.createElement('canvas');
+        c.width=W;c.height=H;
+        const ctx=c.getContext('2d');
+        ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+        ctx.drawImage(img,0,0,W,H);
+        URL.revokeObjectURL(url);
+        resolve(c.toDataURL('image/png'));
+      };
+      img.onerror=(e)=>{URL.revokeObjectURL(url);reject(e);};
+      img.src=url;
+    }catch(e){reject(e);}
+  });
+}
+
+async function addSwissQrBillToPdf(doc,f,tot){
+  try{
+    const lib=window.SwissQRBill||window.swissqrbill;
+    const Ctor=lib&&(lib.SVG||lib.SwissQRBill||lib.default||lib);
+    if(!Ctor)return false;
+    const data=buildSwissQrBillData(f,tot);
+    let qrBill;
+    try{qrBill=new Ctor(data,{language:'FR'});}
+    catch(_){qrBill=new Ctor(data);}
+    const el=qrBill.element||qrBill.svg||qrBill;
+    let svg=typeof el==='string'?el:(el&&el.outerHTML);
+    if(!svg)return false;
+    if(!/xmlns=/.test(svg))svg=svg.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"');
+    if(!/\swidth=/.test(svg))svg=svg.replace('<svg','<svg width="210mm" height="105mm" viewBox="0 0 210 105"');
+    const png=await svgToPngDataUrl(svg,210,105);
+    doc.addPage();
+    doc.addImage(png,'PNG',0,0,210,105);
+    return true;
+  }catch(e){console.warn('Swiss QR Bill PDF failed',e);return false;}
+}
+
+async function generateInvoicePDF(f,sub,vt,tot){
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({unit:'mm',format:'a4'});
   const W=210,M=20;
@@ -887,27 +931,12 @@ function generateInvoicePDF(f,sub,vt,tot){
     y+=lines.length*5;
   }
 
-  // ── QR-facture ───────────────────────────────────────
-  if(y>212)y=212;
-  const qrPayload=buildSwissQrPayload(f,tot);
-  doc.setDrawColor(224,216,204);
-  doc.setFillColor(248,245,239);
-  doc.roundedRect(M,y+4,W-2*M,42,2,2,'FD');
-  doc.setFont('helvetica','bold');
-  doc.setFontSize(8);
-  doc.setTextColor(212,169,78);
-  doc.text('QR-FACTURE SUISSE',M+5,y+12);
-  if(!drawQrCodeOnPdf(doc,qrPayload,M+5,y+16,25)){
-    doc.setTextColor(180,0,0);
-    doc.text('QR indisponible',M+5,y+28);
-  }
-  doc.setFont('helvetica','normal');
-  doc.setFontSize(8);
-  doc.setTextColor(70,70,70);
-  doc.text('IBAN : '+extractIban(f.notes),M+36,y+19);
-  doc.text('Montant : '+tot.toFixed(2)+' CHF',M+36,y+25);
-  doc.text('Échéance : '+(f.due_date||''),M+36,y+31);
-  doc.text('Référence : '+(f.number||''),M+36,y+37);
+  // ── Mention QR-facture (le bulletin officiel est en page 2) ──
+  if(y>250)y=250;
+  doc.setFont('helvetica','italic');
+  doc.setFontSize(9);
+  doc.setTextColor(120,120,120);
+  doc.text('Bulletin de versement Swiss QR Bill en page suivante.',W/2,y+8,{align:'center'});
 
   // ── Footer ────────────────────────────────────────────
   doc.setFillColor(245,245,245);
@@ -916,6 +945,8 @@ function generateInvoicePDF(f,sub,vt,tot){
   doc.setFontSize(8);
   doc.setTextColor(160,160,160);
   doc.text('Généré avec FacturaPro · facturapro.ch',W/2,287,{align:'center'});
+
+  await addSwissQrBillToPdf(doc,f,tot);
 
   return doc.output('blob');
 }
@@ -2120,18 +2151,18 @@ function downloadPdfBlob(pdfBlob,fname){
   setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(blobUrl);},1000);
 }
 
-function downloadInvoicePdf(f,sub,vt,tot){
-  const pdfBlob=generateInvoicePDF(f,sub,vt,tot);
+async function downloadInvoicePdf(f,sub,vt,tot){
+  const pdfBlob=await generateInvoicePDF(f,sub,vt,tot);
   const fname='Facture-'+(f.number||'').replace(/[\/\\]/g,'-')+'.pdf';
   downloadPdfBlob(pdfBlob,fname);
 }
 
-function downloadCurrentInvoicePdf(){
+async function downloadCurrentInvoicePdf(){
   syncFormFromDOM();
   const f=state.form;
   if(!f.client_name||!f.client_name.trim()){alert('Le nom du client est requis');return;}
   const{sub,vt,tot}=calcTotals(f);
-  downloadInvoicePdf(f,sub,vt,tot);
+  await downloadInvoicePdf(f,sub,vt,tot);
 }
 
 async function saveAndSendInvoiceByEmail(){
@@ -2148,7 +2179,7 @@ async function saveAndSendInvoiceByEmail(){
     await persistInvoicePayload(payload);
     await loadInvoices();
     state.saving=false;
-    downloadInvoicePdf(f,sub,vt,tot);
+    await downloadInvoicePdf(f,sub,vt,tot);
     state.page='dashboard';render();
   }catch(e){
     console.error(e);state.saving=false;
