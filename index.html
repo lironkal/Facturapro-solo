@@ -97,7 +97,7 @@ html,body{background:#0b0b0c;color:var(--tx);font-family:'DM Sans',sans-serif;mi
 .btn-save{flex:1;padding:14px;background:linear-gradient(135deg,#d4a94e,#9a6e18);color:#0b0b0c;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:.3s}
 .btn-save:hover{box-shadow:0 6px 28px rgba(201,168,76,.42);transform:translateY(-1px)}
 .btn-save:disabled{opacity:.5;cursor:not-allowed}
-.btn-email{flex:1;padding:14px;background:transparent;color:var(--gold);border:1.5px solid var(--gold);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:.3s}
+.btn-email{flex:1;padding:14px;background:transparent;color:var(--g);border:1.5px solid var(--g);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:.3s}
 .btn-email:hover{background:rgba(212,169,78,.12);box-shadow:0 4px 18px rgba(201,168,76,.25);transform:translateY(-1px)}
 .pricing-wrap{min-height:100vh;background:var(--bg);padding:60px 20px}
 .pricing-inner{max-width:700px;margin:0 auto;text-align:center}
@@ -2020,17 +2020,8 @@ async function saveInvoice(){
   }
 }
 
-async function saveAndSendInvoiceByEmail(){
-  syncFormFromDOM();
-  const f=state.form;
-  if(!f.client_name||!f.client_name.trim()){alert('Le nom du client est requis');return;}
-  const isNew=!state.currentInvoice||!state.currentInvoice.id;
-  if(isNew&&!canCreateInvoice()){state.showLimitModal=true;state.page='dashboard';render();return;}
-  const{sub,vt,tot}=calcTotals(f);
-
-  // 1. Save invoice
-  state.saving=true;render();
-  const payload={
+function buildInvoicePayload(f,sub,vt,tot){
+  return{
     user_id:state.session.user.id,
     number:f.number,date:f.date,due_date:f.due_date,
     client_name:f.client_name,client_address:f.client_address,
@@ -2039,14 +2030,57 @@ async function saveAndSendInvoiceByEmail(){
     status:f.status||'pending',
     subtotal:Number(sub.toFixed(2)),vat_amount:Number(vt.toFixed(2)),total:Number(tot.toFixed(2))
   };
+}
+
+async function persistInvoicePayload(payload){
+  if(state.currentInvoice&&state.currentInvoice.id){
+    const{error}=await sb.from('invoices').update(payload).eq('id',state.currentInvoice.id).eq('user_id',state.session.user.id);
+    if(error)throw error;
+  }else{
+    const{error}=await sb.from('invoices').insert(payload);
+    if(error)throw error;
+  }
+}
+
+function canSharePdfFile(file){
+  return !!(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]})));
+}
+
+async function saveAndSendInvoiceByEmail(){
+  if(state.saving)return;
+  syncFormFromDOM();
+  const f=state.form;
+  if(!f.client_name||!f.client_name.trim()){alert('Le nom du client est requis');return;}
+  const isNew=!state.currentInvoice||!state.currentInvoice.id;
+  if(isNew&&!canCreateInvoice()){state.showLimitModal=true;state.page='dashboard';render();return;}
+  const{sub,vt,tot}=calcTotals(f);
+  const payload=buildInvoicePayload(f,sub,vt,tot);
+
+  // Generate the PDF before any network wait so iOS keeps the click gesture for sharing.
+  const pdfBlob=generateInvoicePDF(f,sub,vt,tot);
+  const fname='Facture-'+(f.number||'').replace(/[\/\\]/g,'-')+'.pdf';
+  const pdfFile=new File([pdfBlob],fname,{type:'application/pdf'});
+
+  if(canSharePdfFile(pdfFile)){
+    try{
+      await navigator.share({
+        files:[pdfFile],
+        title:'Facture '+(f.number||'')+' — '+(f.client_name||''),
+        text:'Veuillez trouver ci-joint votre facture n° '+(f.number||'')+' — Total TTC : CHF '+tot.toFixed(2)
+      });
+      state.saving=true;render();
+      await persistInvoicePayload(payload);
+      await loadInvoices();
+      state.saving=false;
+      state.page='dashboard';render();
+      return;
+    }catch(e){if(e.name==='AbortError')return;}
+  }
+
+  // Fallback: save, download the PDF, then open the mail app with the message ready.
   try{
-    if(state.currentInvoice&&state.currentInvoice.id){
-      const{error}=await sb.from('invoices').update(payload).eq('id',state.currentInvoice.id).eq('user_id',state.session.user.id);
-      if(error)throw error;
-    }else{
-      const{error}=await sb.from('invoices').insert(payload);
-      if(error)throw error;
-    }
+    state.saving=true;render();
+    await persistInvoicePayload(payload);
     await loadInvoices();
     state.saving=false;render();
   }catch(e){
@@ -2054,24 +2088,6 @@ async function saveAndSendInvoiceByEmail(){
     alert('Erreur lors de l\'enregistrement : '+(e.message||e));render();return;
   }
 
-  // 2. Generate PDF
-  const pdfBlob=generateInvoicePDF(f,sub,vt,tot);
-  const fname='Facture-'+(f.number||'').replace(/[\/\\]/g,'-')+'.pdf';
-  const pdfFile=new File([pdfBlob],fname,{type:'application/pdf'});
-
-  // 3. Try Web Share API (iOS, Android, macOS Safari)
-  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[pdfFile]})){
-    try{
-      await navigator.share({
-        files:[pdfFile],
-        title:'Facture '+(f.number||'')+' — '+(f.client_name||''),
-        text:'Veuillez trouver ci-joint votre facture n° '+(f.number||'')+' — Total TTC : CHF '+tot.toFixed(2)
-      });
-      return;
-    }catch(e){if(e.name==='AbortError')return;}
-  }
-
-  // 4. Fallback: download PDF + open mailto
   const blobUrl=URL.createObjectURL(pdfBlob);
   const a=document.createElement('a');
   a.href=blobUrl;a.download=fname;document.body.appendChild(a);a.click();
@@ -2085,7 +2101,7 @@ async function saveAndSendInvoiceByEmail(){
     'Total TTC : CHF '+tot.toFixed(2)+'\nÉchéance : '+(f.due_date||'')+
     '\n\nCordialement'
   );
-  window.open('mailto:'+email.trim()+'?subject='+subject+'&body='+body,'_blank');
+  window.location.href='mailto:'+email.trim()+'?subject='+subject+'&body='+body;
 }
 
 /* ---------- INIT ---------- */
