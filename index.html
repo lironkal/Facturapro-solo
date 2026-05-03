@@ -2182,10 +2182,15 @@ async function saveAndSendInvoiceByEmail(){
     await persistInvoicePayload(payload);
     await loadInvoices();
     state.saving=false;
-    await downloadInvoicePdf(f,sub,vt,tot);
-    // Ouvre le client mail avec un message pré-rempli pour transférer la facture
+
+    // Génère le PDF comme Blob puis l'enveloppe dans un File
+    const pdfBlob=await generateInvoicePDF(f,sub,vt,tot);
+    const fname='Facture-'+(f.number||'').replace(/[\/\\]/g,'-')+'.pdf';
+    let pdfFile=null;
+    try{pdfFile=new File([pdfBlob],fname,{type:'application/pdf'});}catch(_){pdfFile=null;}
+
     const subject='Facture '+(f.number||'')+' - '+COMPANY_NAME;
-    const bodyLines=[
+    const bodyText=[
       'Bonjour '+(f.client_name||'')+',',
       '',
       'Veuillez trouver ci-joint votre facture '+(f.number||'')+'.',
@@ -2193,14 +2198,34 @@ async function saveAndSendInvoiceByEmail(){
       'Montant total : '+tot.toFixed(2)+' CHF',
       'Échéance : '+fmtDate(f.due_date),
       '',
-      'Le PDF de la facture vient d\'être téléchargé sur votre appareil. Merci de l\'attacher à ce mail avant de l\'envoyer.',
-      '',
       'Cordialement,',
       COMPANY_NAME
-    ];
-    const mailto='mailto:?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(bodyLines.join('\n'));
-    // Petit délai pour laisser le téléchargement du PDF s'initier avant d'ouvrir Mail
-    setTimeout(function(){window.location.href=mailto;},300);
+    ].join('\n');
+
+    // ✅ iOS / Android : Web Share API avec fichier — le PDF est joint AUTOMATIQUEMENT
+    // L'utilisateur choisit Mail (ou Messages, WhatsApp, etc.) et le fichier est déjà attaché.
+    let shared=false;
+    if(pdfFile&&navigator.canShare&&navigator.canShare({files:[pdfFile]})){
+      try{
+        await navigator.share({title:subject,text:bodyText,files:[pdfFile]});
+        shared=true;
+      }catch(shareErr){
+        if(shareErr&&shareErr.name==='AbortError'){
+          // L'utilisateur a annulé la feuille de partage : on n'affiche rien et on revient au dashboard
+          state.page='dashboard';render();return;
+        }
+        // Sinon on tombe dans le fallback ci-dessous
+      }
+    }
+
+    if(!shared){
+      // 🖥️ Fallback desktop : télécharge le PDF + ouvre mailto pour pré-remplir le mail
+      downloadPdfBlob(pdfBlob,fname);
+      const bodyWithNote=bodyText+'\n\n(Le PDF '+fname+' vient d\'être téléchargé. Merci de l\'attacher à ce mail avant l\'envoi.)';
+      const mailto='mailto:?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(bodyWithNote);
+      setTimeout(function(){window.location.href=mailto;},300);
+    }
+
     state.page='dashboard';render();
   }catch(e){
     console.error(e);state.saving=false;
